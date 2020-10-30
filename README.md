@@ -1,1 +1,1 @@
-### Write an simple operate system with Assembly langurage and C programming language.
+### Write an simple operate system with Assembly language and C programming language.
