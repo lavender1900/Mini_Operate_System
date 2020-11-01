@@ -19,7 +19,7 @@ DA_DPL2			equ	0040h		; Descriptor Privilege is 2
 DA_DPL3			equ	0060h		; Descritpor Privilege is 3
 
 ; Segment Category
-DA_CATEGORY_DC		equ	1h		; Segment is code segment or data segment
+DA_CATEGORY_DC		equ	0010h		; Segment is code segment or data segment
 DA_CATEGORY_SG		equ	0h		; Segment is system segment or gate segment
 
 ; Code Or Data Segment Type

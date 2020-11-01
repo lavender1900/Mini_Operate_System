@@ -12,8 +12,8 @@ jmp	LABEL_BEGIN
 ; Global Descriptor Table
 			;    Base Address     Segment Limit      Attributes
 DUMMY:		Descriptor		0,		0,		0 	; First descriptor is not used
-DESC_CODE32:	Descriptor      SEG_CODE32,	 0ffffh,   		SA_32BIT_EXE_ONLY_CODE; Code Segment, 32bit
-DESC_VIDEO:	Descriptor	0B8000h,  	   0ffffh,      SA_READ_WRITE_DATA; Video Segment, display text
+DESC_CODE32:	Descriptor      	0,	 0ffffh,   		DA_32BIT_EXE_ONLY_CODE	
+DESC_VIDEO:	Descriptor	0B8000h,  	   0ffffh,     		DA_READ_WRITE_DATA 
 
 ; GDT end
 
@@ -25,11 +25,26 @@ GDTPtr		dw	GDTLen - 1
 SelectorCode32	equ	DESC_CODE32 - DUMMY
 SelectorVideo	equ	DESC_VIDEO - DUMMY
 
-[section s16]
+[section .s16]
 [bits 16]
 LABEL_BEGIN:
 ; init stack
+mov	ax, cs
+mov	ds, ax
+mov	es, ax
+mov	ss, ax
 mov 	sp, 0100h
+
+; init Descriptor Segment Address
+xor	eax, eax
+mov	ax, cs
+shl	eax, 4
+add	eax, SEG_CODE32
+mov	word	[DESC_CODE32 + 2], ax
+shr	eax, 16
+mov	byte	[DESC_CODE32 + 4], al
+mov	byte	[DESC_CODE32 + 7], ah
+
 
 ; load GDTR
 lgdt	[GDTPtr]
@@ -46,7 +61,7 @@ mov	cr0, eax
 
 jmp	dword SelectorCode32: 0 ; jump into protect mode
 
-[section s32]
+[section .s32]
 [bits 32]
 SEG_CODE32:
 mov	ax, SelectorVideo
