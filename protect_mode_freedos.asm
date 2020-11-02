@@ -3,6 +3,13 @@
 ; 80x86 is 32bit CPU, introduced protect mode which provide
 ; stronger resource protection, paging, more address space etc
 
+; For me there's two reason running these codes under freedos
+; 1. As code grows, it will exceed 512 bytes very soon
+; 2. NASM's support for referring labels between different sections is very poor,
+;    which means I can't write bootable code like '510 - ($ - START) db 0'
+;
+; But don't worry, I will write my own loader in the future
+
 %include	"macros.inc"
 
 org	0100h ; nasm directive - relocate label address by 0x0100
@@ -14,10 +21,14 @@ jmp	BEGIN
 			;    Base Address     Segment Limit      Attributes
 DUMMY:		Descriptor	0,		0,			0 			; First descriptor is not used
 DESC_CODE32:	Descriptor     	0,		0ffffh,   		DA_32BIT_EXE_ONLY_CODE	
+DESC_CODE16:	Descriptor	0,		0ffffh,			DA_16BIT_EXE_ONLY_CODE
 DESC_STACK:	Descriptor	0,		TopOfStack,		DA_32BIT_READ_WRITE_STACK
 DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA
 DESC_VIDEO:	Descriptor	0B8000h,  	0ffffh,     		DA_READ_WRITE_DATA 
 DESC_HIGH_MEM:	Descriptor	0500000h,	0ffffh,			DA_READ_WRITE_DATA
+
+; Return from 32bit mode, we need a proper selector loading into ds, es, ss etc
+DESC_WORK_AROUND Descriptor	0,		0ffffh,			DA_READ_WRITE_DATA	
 
 ; GDT end
 
@@ -27,10 +38,12 @@ GDTPtr		dw	GDTLen - 1
 
 ; Selectors
 SelectorCode32		equ	DESC_CODE32 - DUMMY
+SelectorCode16		equ	DESC_CODE16 - DUMMY
 SelectorData		equ	DESC_DATA - DUMMY
 SelectorStack		equ	DESC_STACK - DUMMY
 SelectorVideo		equ	DESC_VIDEO - DUMMY
 SelectorHighMem		equ	DESC_HIGH_MEM - DUMMY	
+SelectorWorkAround	equ	DESC_WORK_AROUND - DUMMY
 
 [section .s16]
 align 16
@@ -43,6 +56,10 @@ mov	es, ax
 mov	ss, ax
 mov 	sp, 0100h
 
+; prepare for jump back real mode
+mov	[GO_BACK_TO_REAL_MODE + 3], ax
+mov	word	[SPValueInRealMode], sp
+
 ; init GDT loading info
 xor	eax, eax
 mov	ax, cs
@@ -50,7 +67,7 @@ shl	eax, 4
 add	eax, DUMMY
 mov	dword	[GDTPtr + 2], eax
 
-; init Code Segment Base Address
+; init 32bit Code Segment Base Address
 xor	eax, eax
 mov	ax, cs
 shl	eax, 4
@@ -59,6 +76,16 @@ mov	word	[DESC_CODE32 + 2], ax
 shr	eax, 16
 mov	byte	[DESC_CODE32 + 4], al
 mov	byte	[DESC_CODE32 + 7], ah
+
+; init 16bit Code Segment Base Address
+xor	eax, eax
+mov	ax, cs
+shl	eax, 4
+add	eax, SEG_CODE16
+mov	word	[DESC_CODE16 + 2], ax
+shr	eax, 16
+mov	byte	[DESC_CODE16 + 4], al
+mov	byte	[DESC_CODE16 + 7], ah
 
 ; init Data Segment Base Address
 xor	eax, eax
@@ -95,6 +122,45 @@ or	eax, 1
 mov	cr0, eax
 
 jmp	dword SelectorCode32: 0 ; jump into protect mode
+
+[section .s16protectmode]
+align 16
+[bits 16]
+SEG_CODE16:
+mov	ax, SelectorWorkAround
+mov	ds, ax
+mov	es, ax
+mov	fs, ax
+mov	gs, ax
+mov	ss, ax
+
+; Close protect mode
+mov	eax, cr0
+and	al, 11111110b
+mov	cr0, eax
+
+; Jump back to 16 bit real mode
+GO_BACK_TO_REAL_MODE:
+jmp	0: REAL_MODE
+
+[section .s16realmode]
+REAL_MODE:
+mov	ax, cs
+mov	ds, ax
+mov	es, ax
+mov	ss, ax
+
+mov	sp, [SPValueInRealMode]
+
+in	al, 92h
+and	al, 11111101b
+out	92h, al
+
+sti
+
+; return to freedos
+mov	ax, 4c00h
+int	21h
 
 [section .data]
 align 32
@@ -150,7 +216,7 @@ call	ReadHighMem
 call	WriteHighMem
 call	ReadHighMem
 
-jmp	$
+jmp	SelectorCode16:0	
 
 ;--------------- ReadHighMem() start  -------------------
 ReadHighMem:
