@@ -3,17 +3,22 @@
 ; 80x86 is 32bit CPU, introduced protect mode which provide
 ; stronger resource protection, paging, more address space etc
 
-org	07c00h
 %include	"macros.inc"
 
-jmp	LABEL_BEGIN
+org	07c00h ; nasm directive - relocate label address by 07c00
+
+START:
+jmp	BEGIN	
 
 [section .gdt]
 ; Global Descriptor Table
 			;    Base Address     Segment Limit      Attributes
-DUMMY:		Descriptor		0,		0,		0 	; First descriptor is not used
-DESC_CODE32:	Descriptor      	0,	 0ffffh,   		DA_32BIT_EXE_ONLY_CODE	
-DESC_VIDEO:	Descriptor	0B8000h,  	   0ffffh,     		DA_READ_WRITE_DATA 
+DUMMY:		Descriptor	0,		0,			0 			; First descriptor is not used
+DESC_CODE32:	Descriptor     	0,		0ffffh,   		DA_32BIT_EXE_ONLY_CODE	
+DESC_STACK:	Descriptor	0,		TopOfStack,		DA_32BIT_READ_WRITE_STACK
+DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA
+DESC_VIDEO:	Descriptor	0B8000h,  	0ffffh,     		DA_READ_WRITE_DATA 
+DESC_HIGH_MEM:	Descriptor	0500000h,	0ffffh,			DA_READ_WRITE_DATA
 
 ; GDT end
 
@@ -22,12 +27,16 @@ GDTPtr		dw	GDTLen - 1
 		dd	DUMMY	
 
 ; Selectors
-SelectorCode32	equ	DESC_CODE32 - DUMMY
-SelectorVideo	equ	DESC_VIDEO - DUMMY
+SelectorCode32		equ	DESC_CODE32 - DUMMY
+SelectorData		equ	DESC_DATA - DUMMY
+SelectorStack		equ	DESC_STACK - DUMMY
+SelectorVideo		equ	DESC_VIDEO - DUMMY
+SelectorHighMem		equ	DESC_HIGH_MEM - DUMMY	
 
 [section .s16]
+align 16
 [bits 16]
-LABEL_BEGIN:
+BEGIN:
 ; init stack
 mov	ax, cs
 mov	ds, ax
@@ -35,7 +44,7 @@ mov	es, ax
 mov	ss, ax
 mov 	sp, 0100h
 
-; init Descriptor Segment Address
+; init Code Segment Base Address
 xor	eax, eax
 mov	ax, cs
 shl	eax, 4
@@ -44,6 +53,26 @@ mov	word	[DESC_CODE32 + 2], ax
 shr	eax, 16
 mov	byte	[DESC_CODE32 + 4], al
 mov	byte	[DESC_CODE32 + 7], ah
+
+; init Data Segment Base Address
+xor	eax, eax
+mov	ax, cs
+shl	eax, 4
+add 	eax, SEG_DATA
+mov	word	[DESC_DATA + 2], ax
+shr	eax, 16
+mov	byte	[DESC_DATA + 4], al
+mov	byte	[DESC_DATA + 7], ah
+
+; init Stack Segment Base Address
+xor	eax, eax
+mov	ax, cs
+shl	eax, 4
+add	eax, SEG_STACK
+mov	word	[DESC_STACK + 2], ax
+shr	eax, 16
+mov	byte	[DESC_STACK + 4], al
+mov	byte 	[DESC_STACK + 7], ah
 
 
 ; load GDTR
@@ -61,15 +90,150 @@ mov	cr0, eax
 
 jmp	dword SelectorCode32: 0 ; jump into protect mode
 
-[section .s32]
+[section .data]
+align 32
+[bits 32]
+SEG_DATA:
+SPValueInRealMode	dw	0
+PMMessage:	db	"In Protect Mode now. ^-^",0
+OffsetMessage	equ	PMMessage - $$
+StrTest:	db	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",0
+OffsetStrTest	equ	StrTest - $$
+DataLen		equ	$ - SEG_DATA
+
 [bits 32]
 SEG_CODE32:
+mov	ax, SelectorData
+mov	ds, ax
+mov	ax, SelectorHighMem
+mov	es, ax
 mov	ax, SelectorVideo
 mov	gs, ax
 
-mov	edi, (80 * 11 + 79) * 2
-mov	ah, 0Ch
-mov	al, 'P'
+mov	ax, SelectorStack
+mov	ss, ax
+
+mov	esp, TopOfStack
+
+mov	ah, 0Ch ; 00001100 -  0000 black background 1100 red chars
+xor	esi, esi
+xor	edi, edi
+mov	esi, OffsetMessage
+mov	edi, (80 * 10 + 0) * 2
+cld
+
+.1:
+lodsb
+test	al, al
+jz	.2
 mov	[gs:edi], ax
+add	edi, 2
+jmp	.1
+
+.2:
+call	DisplayReturn
+call	ReadHighMem
+call	WriteHighMem
+call	ReadHighMem
 
 jmp	$
+
+;--------------- ReadHighMem() start  -------------------
+ReadHighMem:
+xor	esi, esi
+mov	ecx, 8
+.loop:
+mov	al, [es:esi]
+call	DisplayAL
+inc	esi
+loop	.loop
+
+call	DisplayReturn
+
+ret
+;-------------- ReadHighMem() end ---------------------
+
+;-------------- WriteHighMem() start -------------------
+WriteHighMem:
+push	esi
+push	edi
+xor	esi, esi
+xor	edi, edi
+mov	esi, OffsetStrTest
+cld
+
+.1:
+lodsb
+test	al, al
+jz	.2
+mov	[es:edi], al
+inc	edi
+jmp	.1
+.2:
+pop	edi
+pop	esi
+
+ret
+;-------------- WriteHighMem() end -------------------
+
+;-------------- DisplayAL() start --------------------
+DisplayAL:
+push	ecx
+push	edx
+
+; This function convert decimal to hex
+mov	ah, 0Ch
+mov	dl, al
+; Each time process only four bits (as four bits perform max hex F(1111))
+shr	al, 4
+mov	ecx, 2
+.begin:
+and	al, 01111b
+cmp	al, 9
+ja	.1
+add	al, '0'
+jmp	.2
+.1:
+sub	al, 0Ah
+add	al, 'A'
+
+.2:
+mov	[gs:edi], ax
+add	edi, 2
+mov	al, dl
+loop	.begin
+
+add	edi, 2
+
+pop	edx
+pop	ecx
+
+ret
+;-------------- DisplayAL() end ---------------------
+
+;-------------- DisplayReturn() start ---------------------
+DisplayReturn:
+push	eax
+push	ebx
+mov	eax, edi
+mov	bl, 160
+div	bl
+and	eax, 0ffh
+inc	eax
+mov	bl, 160
+mul	bl
+mov	edi, eax
+pop	ebx
+pop	eax
+
+ret
+;-------------- DisplayReturn() end ------------------------
+
+
+;-------------- Write Bootable Device Indicator ------------
+[section .stack]
+[bits 32]
+SEG_STACK:
+times	 62	 db	0
+TopOfStack	equ	$ - SEG_STACK - 1
+dw	0xaa55

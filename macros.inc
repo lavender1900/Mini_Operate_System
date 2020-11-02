@@ -71,16 +71,22 @@ DA_DATA_4G_UPPER_LIMIT	equ	4000h		; Data Segment With 4GB Upper Limit
 DA_DATA_64K_UPPER_LIMIT	equ	0h		; Data Segment With 64KB Upper Limit
 
 ; Stack Segment D/B
-DA_STACK_USE_ESP	equ	2000h		; Stack Segment, When using implicit instructions, use esp as stack pointer
+DA_STACK_USE_ESP	equ	4000h		; Stack Segment, When using implicit instructions, use esp as stack pointer
 DA_STACK_USE_SP		equ	0h		; Stack Segment, When using implicit instructions, use sp as stack pointer
 
 ; Common Composite
+
+; Different Code Segments
 DA_32BIT_EXE_ONLY_CODE		equ	DA_CODE_32BIT | DA_PRESENT | DA_CATEGORY_DC | DA_TYPE_EO ; 32bit execute only code segment
 DA_32BIT_EXE_READ_CODE		equ	DA_CODE_32BIT | DA_PRESENT | DA_CATEGORY_DC | DA_TYPE_ER ; 32bit execute read code segment
 DA_32BIT_EXE_CONFORM_CODE	equ	DA_CODE_32BIT | DA_PRESENT | DA_CATEGORY_DC | DA_TYPE_EO_CF ; 32 bit execute only conform code segment
 DA_32BIT_EXE_READ_CONFORM_CODE	equ	DA_CODE_32BIT | DA_PRESENT | DA_CATEGORY_DC | DA_TYPE_ER_CF ; 32 bit execute read conform code segment
 
-
+; Different Data Segments
 DA_READ_ONLY_DATA	equ	DA_CATEGORY_DC | DA_PRESENT | DA_TYPE_RO ; read only data segment
 DA_READ_WRITE_DATA	equ	DA_CATEGORY_DC | DA_PRESENT | DA_TYPE_RW ; read write data segment
 DA_READ_WRITE_ACCESSED_DATA	equ	DA_CATEGORY_DC | DA_PRESENT | DA_TYPE_RW_ACCESSED ; read write accessed data segment
+
+; Different Stack Segments
+DA_32BIT_READ_WRITE_STACK	equ	DA_STACK_USE_ESP | DA_PRESENT | DA_CATEGORY_DC | DA_TYPE_RW ; read write stack segment
+DA_32BIT_READ_WRITE_ACCESSED_STACK	equ	DA_STACK_USE_ESP | DA_PRESENT | DA_CATEGORY_DC | DA_TYPE_RW_ACCESSED ; read write accessed stack segment
