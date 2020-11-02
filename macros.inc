@@ -6,6 +6,9 @@
 	db	(%1 >> 24) & 0FFh ; Segment Base Addr 2 (forth byte)
 %endmacro
 
+; Selector Local Descriptor Indicator
+SA_LOCAL	equ		04h
+
 ; Segment Attributes Composite
 ; Attribute Mapping
 ; | G | D/B | 0 | AVL | Segment Limit 2 | P | DPL | S | Type|
@@ -75,6 +78,8 @@ DA_STACK_USE_ESP	equ	4000h		; Stack Segment, When using implicit instructions, u
 DA_STACK_USE_SP		equ	0h		; Stack Segment, When using implicit instructions, use sp as stack pointer
 
 ; Common Composite
+
+DA_LDT		equ		DA_PRESENT | DA_CATEGORY_SG | DA_TYPE_LDT
 
 ; Different Code Segments
 DA_32BIT_EXE_ONLY_CODE		equ	DA_CODE_32BIT | DA_PRESENT | DA_CATEGORY_DC | DA_TYPE_EO ; 32bit execute only code segment

@@ -18,13 +18,15 @@ jmp	BEGIN
 
 [section .gdt]
 ; Global Descriptor Table
+GDT_START:
 			;    Base Address     Segment Limit      Attributes
-DUMMY:		Descriptor	0,		0,			0 			; First descriptor is not used
+GDT_DUMMY:	Descriptor	0,		0,			0 			; First descriptor is not used
 DESC_CODE32:	Descriptor     	0,		0ffffh,   		DA_32BIT_EXE_ONLY_CODE	
 DESC_CODE16:	Descriptor	0,		0ffffh,			DA_16BIT_EXE_ONLY_CODE
 DESC_STACK:	Descriptor	0,		TopOfStack,		DA_32BIT_READ_WRITE_STACK
 DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA
 DESC_VIDEO:	Descriptor	0B8000h,  	0ffffh,     		DA_READ_WRITE_DATA 
+DESC_LDT:	Descriptor	0,		LDTLen - 1,		DA_LDT
 DESC_HIGH_MEM:	Descriptor	0500000h,	0ffffh,			DA_READ_WRITE_DATA
 
 ; Return from 32bit mode, we need a proper selector loading into ds, es, ss etc
@@ -32,18 +34,19 @@ DESC_WORK_AROUND Descriptor	0,		0ffffh,			DA_READ_WRITE_DATA
 
 ; GDT end
 
-GDTLen 		equ	$ - DUMMY
+GDTLen 		equ	$ - GDT_DUMMY
 GDTPtr		dw	GDTLen - 1
 		dd	0	
 
 ; Selectors
-SelectorCode32		equ	DESC_CODE32 - DUMMY
-SelectorCode16		equ	DESC_CODE16 - DUMMY
-SelectorData		equ	DESC_DATA - DUMMY
-SelectorStack		equ	DESC_STACK - DUMMY
-SelectorVideo		equ	DESC_VIDEO - DUMMY
-SelectorHighMem		equ	DESC_HIGH_MEM - DUMMY	
-SelectorWorkAround	equ	DESC_WORK_AROUND - DUMMY
+SelectorCode32		equ	DESC_CODE32 - GDT_DUMMY
+SelectorCode16		equ	DESC_CODE16 - GDT_DUMMY
+SelectorData		equ	DESC_DATA - GDT_DUMMY
+SelectorStack		equ	DESC_STACK - GDT_DUMMY
+SelectorVideo		equ	DESC_VIDEO - GDT_DUMMY
+SelectorLdt		equ	DESC_LDT - GDT_DUMMY
+SelectorHighMem		equ	DESC_HIGH_MEM - GDT_DUMMY	
+SelectorWorkAround	equ	DESC_WORK_AROUND - GDT_DUMMY
 
 [section .s16]
 align 16
@@ -64,8 +67,29 @@ mov	word	[SPValueInRealMode], sp
 xor	eax, eax
 mov	ax, cs
 shl	eax, 4
-add	eax, DUMMY
+add	eax, GDT_START 
 mov	dword	[GDTPtr + 2], eax
+
+; init LDT Descriptor in GDT
+xor	eax, eax
+mov	ax, cs
+shl	eax, 4
+add	eax, LDT_START 
+mov	word	[DESC_LDT + 2], ax
+shr	eax, 16
+mov	byte	[DESC_LDT + 4], al
+mov	byte	[DESC_LDT + 7], ah
+
+; init Descriptor in LDT
+xor	eax, eax
+mov	ax, ds
+shl	eax, 4
+add	eax, SEG_CODE_LDT 
+mov	word	[LDT_DESC_CODE + 2], ax
+shr	eax, 16
+mov	byte	[LDT_DESC_CODE + 4], al
+mov	byte	[LDT_DESC_CODE + 7], ah
+
 
 ; init 32bit Code Segment Base Address
 xor	eax, eax
@@ -122,6 +146,17 @@ or	eax, 1
 mov	cr0, eax
 
 jmp	dword SelectorCode32: 0 ; jump into protect mode
+
+[section .ldt]
+align 32
+[bits 32]
+LDT_START:
+LDT_DUMMY		Descriptor	0,	0,		0
+LDT_DESC_CODE		Descriptor	0,	0ffffh,		DA_32BIT_EXE_ONLY_CODE
+
+LDTLen		equ		$ - LDT_DUMMY
+
+SelectorLdtCode		equ		(LDT_DESC_CODE - LDT_DUMMY) | SA_LOCAL
 
 [section .s16protectmode]
 align 16
@@ -181,6 +216,8 @@ times	512	db	0
 TopOfStack	equ	$ - SEG_STACK - 1
 
 
+[section .code32]
+align 32
 [bits 32]
 SEG_CODE32:
 mov	ax, SelectorData
@@ -194,6 +231,24 @@ mov	ax, SelectorStack
 mov	ss, ax
 
 mov	esp, TopOfStack
+
+; load LDTR
+mov	ax, SelectorLdt
+lldt	ax
+; call function through LDT
+jmp	SelectorLdtCode:0
+
+
+[section .code32ldt]
+align 32
+[bits 32]
+SEG_CODE_LDT:
+mov	ax, SelectorVideo
+mov	gs, ax
+mov	edi, (80 * 9 + 0) * 2
+mov	ah, 0Ch
+mov	al, 'L'
+mov	[gs:edi], ax
 
 mov	ah, 0Ch ; 00001100 -  0000 black background 1100 red chars
 xor	esi, esi
