@@ -21,10 +21,10 @@ jmp	BEGIN
 GDT_START:
 			;    Base Address     Segment Limit      Attributes
 GDT_DUMMY:	Descriptor	0,		0,			0 			; First descriptor is not used
-DESC_CODE32:	Descriptor     	0,		0ffffh,   		DA_32BIT_EXE_ONLY_CODE	
+DESC_CODE32:	Descriptor     	0,		0ffffh,   		DA_32BIT_EXE_ONLY_CODE
 DESC_CODE16:	Descriptor	0,		0ffffh,			DA_16BIT_EXE_ONLY_CODE
 DESC_STACK:	Descriptor	0,		TopOfStack,		DA_32BIT_READ_WRITE_STACK
-DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA
+DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA | DA_DPL3
 DESC_VIDEO:	Descriptor	0B8000h,  	0ffffh,     		DA_READ_WRITE_DATA 
 DESC_LDT:	Descriptor	0,		LDTLen - 1,		DA_LDT
 DESC_HIGH_MEM:	Descriptor	0500000h,	0ffffh,			DA_READ_WRITE_DATA
@@ -41,7 +41,7 @@ GDTPtr		dw	GDTLen - 1
 ; Selectors
 SelectorCode32		equ	DESC_CODE32 - GDT_DUMMY
 SelectorCode16		equ	DESC_CODE16 - GDT_DUMMY
-SelectorData		equ	DESC_DATA - GDT_DUMMY
+SelectorData		equ	DESC_DATA - GDT_DUMMY | SA_RPL2
 SelectorStack		equ	DESC_STACK - GDT_DUMMY
 SelectorVideo		equ	DESC_VIDEO - GDT_DUMMY
 SelectorLdt		equ	DESC_LDT - GDT_DUMMY

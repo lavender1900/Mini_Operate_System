@@ -9,6 +9,12 @@
 ; Selector Local Descriptor Indicator
 SA_LOCAL	equ		04h
 
+; Selector Request Privilege Level
+SA_RPL0		equ		0h
+SA_RPL1		equ		1h
+SA_RPL2		equ		2h
+SA_RPL3		equ		3h
+
 ; Segment Attributes Composite
 ; Attribute Mapping
 ; | G | D/B | 0 | AVL | Segment Limit 2 | P | DPL | S | Type|
