@@ -28,9 +28,14 @@ DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA | DA_DPL3
 DESC_VIDEO:	Descriptor	0B8000h,  	0ffffh,     		DA_READ_WRITE_DATA 
 DESC_LDT:	Descriptor	0,		LDTLen - 1,		DA_LDT
 DESC_HIGH_MEM:	Descriptor	0500000h,	0ffffh,			DA_READ_WRITE_DATA
+DESC_CALL_GATE: Descriptor	0,		0ffffh,			DA_32BIT_EXE_ONLY_CODE
 
 ; Return from 32bit mode, we need a proper selector loading into ds, es, ss etc
 DESC_WORK_AROUND Descriptor	0,		0ffffh,			DA_READ_WRITE_DATA	
+
+; Call Gate
+			; Target Selector	offset	DCount		Attribute
+CALL_GATE:	Gate	SelectorCallGate,	0,	0,		DA_386CALL_GATE
 
 ; GDT end
 
@@ -46,6 +51,8 @@ SelectorStack		equ	DESC_STACK - GDT_DUMMY
 SelectorVideo		equ	DESC_VIDEO - GDT_DUMMY
 SelectorLdt		equ	DESC_LDT - GDT_DUMMY
 SelectorHighMem		equ	DESC_HIGH_MEM - GDT_DUMMY	
+SelectorCallGate	equ	DESC_CALL_GATE - GDT_DUMMY
+SelectorCallGateSelf	equ	CALL_GATE - GDT_DUMMY
 SelectorWorkAround	equ	DESC_WORK_AROUND - GDT_DUMMY
 
 [section .s16]
@@ -90,6 +97,15 @@ shr	eax, 16
 mov	byte	[LDT_DESC_CODE + 4], al
 mov	byte	[LDT_DESC_CODE + 7], ah
 
+; init Call Gate Segment
+xor	eax, eax
+mov	ax, cs
+shl	eax, 4
+add	eax, SEG_CALL_GATE
+mov	word	[DESC_CALL_GATE + 2], ax
+shr	eax, 16
+mov	byte	[DESC_CALL_GATE + 4], al
+mov	byte	[DESC_CALL_GATE + 7], ah
 
 ; init 32bit Code Segment Base Address
 xor	eax, eax
@@ -235,6 +251,9 @@ mov	esp, TopOfStack
 ; load LDTR
 mov	ax, SelectorLdt
 lldt	ax
+
+call	SelectorCallGateSelf:0
+
 ; call function through LDT
 jmp	SelectorLdtCode:0
 
@@ -272,6 +291,19 @@ call	WriteHighMem
 call	ReadHighMem
 
 jmp	SelectorCode16:0	
+
+[section .callgate]
+align	32
+[bits 32]
+SEG_CALL_GATE:
+mov	ax, SelectorVideo
+mov	gs, ax
+mov	edi, (80 * 15 + 0) * 2
+mov	ah, 0Ch
+mov	al, 'C'
+mov	[gs:edi], ax
+
+retf
 
 ;--------------- ReadHighMem() start  -------------------
 ReadHighMem:
