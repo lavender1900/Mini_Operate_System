@@ -3,7 +3,7 @@
 	dw	%2 & 0FFFFh ; Segment Limit 1
 	dw	%1 & 0FFFFh ; Segment Base Addr 1 (first two bytes)
 	db	(%1 >> 16) & 0FFh ; Segment Base Addr 1 (third byte)
-	dw	((%2 >> 8) & 0F00h) | (%3 & 0F0FFh) ; Attributes + Segment Limit 2
+	dw	((%2 >> 8) & 0F00h) | ((%3) & 0F0FFh) ; Attributes + Segment Limit 2
 	db	(%1 >> 24) & 0FFh ; Segment Base Addr 2 (forth byte)
 %endmacro
 
@@ -11,7 +11,7 @@
 %macro	Gate	4;
 	dw	%2 & 0FFFFh
 	dw	%1
-	dw	(%3 & 01Fh) | ((%4 << 8) & 0FF00h)
+	dw	(%3 & 1Fh) | (((%4) << 8) & 0FF00h)
 	dw	((%2 >> 16) & 0FFFFh)
 %endmacro
 
@@ -28,16 +28,16 @@ SA_RPL3		equ		3h
 ; Attribute Mapping
 ; | G | D/B | 0 | AVL | Segment Limit 2 | P | DPL | S | Type|
 
-DA_PRESENT		equ	0080h 	; Segment is present
+DA_PRESENT		equ	80h 	; Segment is present
 
 ; Descriptor Privilege Level
 DA_DPL0			equ	0h  		; Descriptor Privilege is 0
-DA_DPL1			equ	0020h		; Descriptor Privilege is 1
-DA_DPL2			equ	0040h		; Descriptor Privilege is 2
-DA_DPL3			equ	0060h		; Descritpor Privilege is 3
+DA_DPL1			equ	20h		; Descriptor Privilege is 1
+DA_DPL2			equ	40h		; Descriptor Privilege is 2
+DA_DPL3			equ	60h		; Descritpor Privilege is 3
 
 ; Segment Category
-DA_CATEGORY_DC		equ	0010h		; Segment is code segment or data segment
+DA_CATEGORY_DC		equ	10h		; Segment is code segment or data segment
 DA_CATEGORY_SG		equ	0h		; Segment is system segment or gate segment
 
 ; Code Or Data Segment Type
@@ -95,6 +95,9 @@ DA_STACK_USE_SP		equ	0h		; Stack Segment, When using implicit instructions, use 
 ; Common Composite
 
 DA_LDT		equ		DA_PRESENT | DA_CATEGORY_SG | DA_TYPE_LDT
+
+; TSS
+DA_386TSS	equ		DA_PRESENT | DA_CATEGORY_SG | DA_TYPE_386TSS
 
 ; Gates
 DA_386CALL_GATE		equ	DA_PRESENT | DA_CATEGORY_SG | DA_TYPE_386CALL_GATE

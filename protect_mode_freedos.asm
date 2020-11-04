@@ -22,20 +22,25 @@ GDT_START:
 			;    Base Address     Segment Limit      Attributes
 GDT_DUMMY:	Descriptor	0,		0,			0 			; First descriptor is not used
 DESC_CODE32:	Descriptor     	0,		0ffffh,   		DA_32BIT_EXE_ONLY_CODE
+DESC_C32_RING1:	Descriptor	0,		0fffh,			DA_32BIT_EXE_ONLY_CODE | DA_DPL1
 DESC_CODE16:	Descriptor	0,		0ffffh,			DA_16BIT_EXE_ONLY_CODE
 DESC_STACK:	Descriptor	0,		TopOfStack,		DA_32BIT_READ_WRITE_STACK
+DESC_STACK1	Descriptor	0,		TopOfStack1,		DA_32BIT_READ_WRITE_STACK | DA_DPL1
 DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA | DA_DPL3
-DESC_VIDEO:	Descriptor	0B8000h,  	0ffffh,     		DA_READ_WRITE_DATA 
+DESC_VIDEO:	Descriptor	0B8000h,  	0ffffh,     		DA_READ_WRITE_DATA | DA_DPL3
 DESC_LDT:	Descriptor	0,		LDTLen - 1,		DA_LDT
 DESC_HIGH_MEM:	Descriptor	0500000h,	0ffffh,			DA_READ_WRITE_DATA
-DESC_CALL_GATE: Descriptor	0,		0ffffh,			DA_32BIT_EXE_ONLY_CODE
+DESC_CALL_GATE: Descriptor	0,		0ffffh,			DA_32BIT_EXE_ONLY_CODE 
 
 ; Return from 32bit mode, we need a proper selector loading into ds, es, ss etc
 DESC_WORK_AROUND Descriptor	0,		0ffffh,			DA_READ_WRITE_DATA	
 
+; TSS
+DESC_TSS:	Descriptor	0, 		TSSLen - 1,		89h	
+
 ; Call Gate
 			; Target Selector	offset	DCount		Attribute
-CALL_GATE:	Gate	SelectorCallGate,	0,	0,		DA_386CALL_GATE
+CALL_GATE:	Gate	SelectorCallGate,	0,	0,		DA_386CALL_GATE | DA_DPL3	
 
 ; GDT end
 
@@ -45,12 +50,15 @@ GDTPtr		dw	GDTLen - 1
 
 ; Selectors
 SelectorCode32		equ	DESC_CODE32 - GDT_DUMMY
+SelectorCodeRing1	equ	(DESC_C32_RING1 - GDT_DUMMY) | SA_RPL1
 SelectorCode16		equ	DESC_CODE16 - GDT_DUMMY
-SelectorData		equ	DESC_DATA - GDT_DUMMY | SA_RPL2
+SelectorData		equ	DESC_DATA - GDT_DUMMY 
 SelectorStack		equ	DESC_STACK - GDT_DUMMY
+SelectorStack1		equ	(DESC_STACK1 - GDT_DUMMY) | SA_RPL1 
 SelectorVideo		equ	DESC_VIDEO - GDT_DUMMY
 SelectorLdt		equ	DESC_LDT - GDT_DUMMY
 SelectorHighMem		equ	DESC_HIGH_MEM - GDT_DUMMY	
+SelectorTss		equ	DESC_TSS - GDT_DUMMY
 SelectorCallGate	equ	DESC_CALL_GATE - GDT_DUMMY
 SelectorCallGateSelf	equ	CALL_GATE - GDT_DUMMY
 SelectorWorkAround	equ	DESC_WORK_AROUND - GDT_DUMMY
@@ -97,6 +105,16 @@ shr	eax, 16
 mov	byte	[LDT_DESC_CODE + 4], al
 mov	byte	[LDT_DESC_CODE + 7], ah
 
+; init TSS Segment
+xor	eax, eax
+mov	ax, cs
+shl	eax, 4
+add	eax, SEG_TSS
+mov	word	[DESC_TSS + 2], ax
+shr	eax, 16
+mov	byte	[DESC_TSS + 4], al
+mov	byte	[DESC_TSS + 7], ah
+
 ; init Call Gate Segment
 xor	eax, eax
 mov	ax, cs
@@ -106,6 +124,16 @@ mov	word	[DESC_CALL_GATE + 2], ax
 shr	eax, 16
 mov	byte	[DESC_CALL_GATE + 4], al
 mov	byte	[DESC_CALL_GATE + 7], ah
+
+; init Ring3 32bit Code Segment
+xor	eax, eax
+mov	ax, cs
+shl	eax, 4
+add	eax, SEG_CODE_RING1
+mov	word	[DESC_C32_RING1 + 2], ax
+shr	eax, 16
+mov	byte	[DESC_C32_RING1 + 4], al
+mov	byte	[DESC_C32_RING1 + 7], ah
 
 ; init 32bit Code Segment Base Address
 xor	eax, eax
@@ -147,6 +175,15 @@ shr	eax, 16
 mov	byte	[DESC_STACK + 4], al
 mov	byte 	[DESC_STACK + 7], ah
 
+; init Ring3 Stack Segment
+xor	eax, eax
+mov	ax, cs
+shl	eax, 4
+add	eax, SEG_STACK_RING1
+mov	word	[DESC_STACK1 + 2], ax
+shr	eax, 16
+mov	byte	[DESC_STACK1 + 4], al
+mov	byte	[DESC_STACK1 + 7], ah
 
 ; load GDTR
 lgdt	[GDTPtr]
@@ -162,6 +199,40 @@ or	eax, 1
 mov	cr0, eax
 
 jmp	dword SelectorCode32: 0 ; jump into protect mode
+
+[section .tss]
+align 32
+[bits 32]
+SEG_TSS:
+dd	0
+dd	TopOfStack
+dd	SelectorStack
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dd	0
+dw	0
+dw	$ - SEG_TSS + 2
+db	0ffh
+TSSLen	equ	$ - SEG_TSS
 
 [section .ldt]
 align 32
@@ -195,6 +266,8 @@ GO_BACK_TO_REAL_MODE:
 jmp	0: REAL_MODE
 
 [section .s16realmode]
+align 16
+[bits 16]
 REAL_MODE:
 mov	ax, cs
 mov	ds, ax
@@ -231,11 +304,29 @@ SEG_STACK:
 times	512	db	0
 TopOfStack	equ	$ - SEG_STACK - 1
 
+[section .stackring3]
+align 32
+[bits 32]
+SEG_STACK_RING1:
+times	512	db	0
+TopOfStack1	equ	$ - SEG_STACK_RING1 - 1
 
 [section .code32]
 align 32
 [bits 32]
 SEG_CODE32:
+; load tss
+mov	ax, SelectorTss
+ltr	ax
+
+; Switch to Ring1
+push	SelectorStack1
+push	TopOfStack1
+push	SelectorCodeRing1
+push	0
+retf
+
+
 mov	ax, SelectorData
 mov	ds, ax
 mov	ax, SelectorHighMem
@@ -304,6 +395,21 @@ mov	al, 'C'
 mov	[gs:edi], ax
 
 retf
+
+[section .codering1]
+align 32
+[bits 32]
+SEG_CODE_RING1:
+mov	ax, SelectorVideo
+mov	gs, ax
+mov	edi, (80 * 20 + 0) * 2
+mov	ah, 0Ch
+mov	al, '7'
+mov	[gs:edi], ax
+xchg	bx, bx
+call	SelectorCallGateSelf:0
+
+jmp	$
 
 ;--------------- ReadHighMem() start  -------------------
 ReadHighMem:
