@@ -23,17 +23,17 @@ GDT_START:
 GDT_DUMMY:	Descriptor	0,		0,			0 			; First descriptor is not used
 DESC_CODE32:	Descriptor     	0,		0ffffh,   		DA_32BIT_EXE_ONLY_CODE
 DESC_C32_RING1:	Descriptor	0,		0fffh,			DA_32BIT_EXE_ONLY_CODE | DA_DPL1
-DESC_CODE16:	Descriptor	0,		0ffffh,			DA_16BIT_EXE_ONLY_CODE
+DESC_CODE16:	Descriptor	0,		0ffffh,			DA_16BIT_EXE_ONLY_CODE 
 DESC_STACK:	Descriptor	0,		TopOfStack,		DA_32BIT_READ_WRITE_STACK
 DESC_STACK1	Descriptor	0,		TopOfStack1,		DA_32BIT_READ_WRITE_STACK | DA_DPL1
 DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA | DA_DPL3
 DESC_VIDEO:	Descriptor	0B8000h,  	0ffffh,     		DA_READ_WRITE_DATA | DA_DPL3
 DESC_LDT:	Descriptor	0,		LDTLen - 1,		DA_LDT
-DESC_HIGH_MEM:	Descriptor	0500000h,	0ffffh,			DA_READ_WRITE_DATA
+DESC_HIGH_MEM:	Descriptor	0500000h,	0ffffh,			DA_READ_WRITE_DATA | DA_DPL1
 DESC_CALL_GATE: Descriptor	0,		0ffffh,			DA_32BIT_EXE_ONLY_CODE 
 
 ; Return from 32bit mode, we need a proper selector loading into ds, es, ss etc
-DESC_WORK_AROUND Descriptor	0,		0ffffh,			DA_READ_WRITE_DATA	
+DESC_WORK_AROUND Descriptor	0,		0ffffh,			DA_READ_WRITE_DATA 
 
 ; TSS
 DESC_TSS:	Descriptor	0, 		TSSLen - 1,		89h	
@@ -239,7 +239,7 @@ align 32
 [bits 32]
 LDT_START:
 LDT_DUMMY		Descriptor	0,	0,		0
-LDT_DESC_CODE		Descriptor	0,	0ffffh,		DA_32BIT_EXE_ONLY_CODE
+LDT_DESC_CODE		Descriptor	0,	0ffffh,		DA_32BIT_EXE_ONLY_CODE 
 
 LDTLen		equ		$ - LDT_DUMMY
 
@@ -319,6 +319,10 @@ SEG_CODE32:
 mov	ax, SelectorTss
 ltr	ax
 
+; load LDTR
+mov	ax, SelectorLdt
+lldt	ax
+
 ; Switch to Ring1
 push	SelectorStack1
 push	TopOfStack1
@@ -326,6 +330,13 @@ push	SelectorCodeRing1
 push	0
 retf
 
+SEG_CODE_RING1:
+mov	ax, SelectorVideo
+mov	gs, ax
+mov	edi, (80 * 20 + 0) * 2
+mov	ah, 0Ch
+mov	al, '7'
+mov	[gs:edi], ax
 
 mov	ax, SelectorData
 mov	ds, ax
@@ -334,20 +345,7 @@ mov	es, ax
 mov	ax, SelectorVideo
 mov	gs, ax
 
-mov	ax, SelectorStack
-mov	ss, ax
-
-mov	esp, TopOfStack
-
-; load LDTR
-mov	ax, SelectorLdt
-lldt	ax
-
 call	SelectorCallGateSelf:0
-
-; call function through LDT
-jmp	SelectorLdtCode:0
-
 
 [section .code32ldt]
 align 32
@@ -380,7 +378,6 @@ call	DisplayReturn
 call	ReadHighMem
 call	WriteHighMem
 call	ReadHighMem
-
 jmp	SelectorCode16:0	
 
 [section .callgate]
@@ -394,22 +391,9 @@ mov	ah, 0Ch
 mov	al, 'C'
 mov	[gs:edi], ax
 
+jmp	SelectorLdtCode:0
+
 retf
-
-[section .codering1]
-align 32
-[bits 32]
-SEG_CODE_RING1:
-mov	ax, SelectorVideo
-mov	gs, ax
-mov	edi, (80 * 20 + 0) * 2
-mov	ah, 0Ch
-mov	al, '7'
-mov	[gs:edi], ax
-xchg	bx, bx
-call	SelectorCallGateSelf:0
-
-jmp	$
 
 ;--------------- ReadHighMem() start  -------------------
 ReadHighMem:
