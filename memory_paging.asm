@@ -67,6 +67,9 @@ mov 	sp, 0100h
 mov	[GO_BACK_TO_REAL_MODE + 3], ax
 mov	word	[SPValueInRealMode], sp
 
+; reading memory info
+call	ReadingMemoryInfo
+
 ; init GDT loading info
 xor	eax, eax
 mov	ax, cs
@@ -129,6 +132,28 @@ mov	cr0, eax
 
 jmp	dword SelectorCode32: 0 ; jump into protect mode
 
+; -------------------- Auxilary Functions ---------------------
+
+ReadingMemoryInfo:
+mov	ebx, 0
+mov	di, MemChkBuf
+.loop:
+mov	eax, 0E820h
+mov	ecx, 20
+mov	edx, 0534D4150h
+int	15h
+jc	MEM_CHK_FAILED
+add	di, 20
+inc	byte	[dbTotalAdrs]
+cmp	ebx, 0
+jne	.loop
+jmp	MEM_CHK_OK
+MEM_CHK_FAILED:
+mov	byte	[dbTotalAdrs], 0
+MEM_CHK_OK:
+
+ret
+
 [section .s16protectmode]
 align 16
 [bits 16]
@@ -140,9 +165,10 @@ mov	fs, ax
 mov	gs, ax
 mov	ss, ax
 
+; Close memory paging
 ; Close protect mode
 mov	eax, cr0
-and	al, 11111110b
+and	eax, 7FFFFFFEh
 mov	cr0, eax
 
 ; Jump back to 16 bit real mode
@@ -175,10 +201,28 @@ align 32
 [bits 32]
 SEG_DATA:
 SPValueInRealMode	dw	0
+ddCursorPosition	dd	0
+OffsetCursorPosition	equ	ddCursorPosition - $$
+szReturn		db	0Ah,0
+OffsetReturn		equ	szReturn - $$
 PMMessage:	db	"In Protect Mode now. ^-^",0
 OffsetMessage	equ	PMMessage - $$
 StrTest:	db	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",0
 OffsetStrTest	equ	StrTest - $$
+MemChkBuf	times	256	db	0
+OffsetMemChkBuf	equ	MemChkBuf - $$
+ddMemSize	dd	0
+OffsetMemSize	equ	ddMemSize - $$
+dbTotalAdrs	db	0
+OffsetTotalAdrs	equ	dbTotalAdrs - $$
+ddBaseLow	dd	0
+OffsetBaseLow	equ	ddBaseLow - $$
+ddLenLow	dd	0
+OffsetLenLow	equ	ddLenLow - $$
+szRamSize	db	"Ram size:",0
+OffsetRamSize	equ	szRamSize - $$
+szMemInfoHeader	db	"BaseAddrL BaseAddrH LengthLow LengthHigh    Type",0
+szMemInfoHeaderOffset	equ	szMemInfoHeader - $$
 DataLen		equ	$ - SEG_DATA
 
 [section .stack]
@@ -200,30 +244,21 @@ mov	ss, ax
 mov	esp, TopOfStack
 mov	ax, SelectorVideo
 mov	gs, ax
-mov	edi, (80 * 9 + 0) * 2
-mov	ah, 0Ch
+
 mov	al, 'L'
-mov	[gs:edi], ax
+call	DisplayAL
+call	DisplayReturn
 
 ; Init Memory Paging
 call 	SetupPaging
 
-mov	ah, 0Ch ; 00001100 -  0000 black background 1100 red chars
-xor	esi, esi
-xor	edi, edi
-mov	esi, OffsetMessage
-mov	edi, (80 * 10 + 0) * 2
-cld
+push	OffsetMessage
+call	DisplayStr
+add	esp, 4
+call	DisplayReturn
 
-.1:
-lodsb
-test	al, al
-jz	.2
-mov	[gs:edi], ax
-add	edi, 2
-jmp	.1
+call	DisplayMemSize
 
-.2:
 jmp	SelectorCode16:0	
 
 SetupPaging:
@@ -238,7 +273,6 @@ stosd
 add	eax, 4096
 loop	.1
 
-xchg	bx, bx
 mov	ax, SelectorPageTbl
 mov	es, ax
 mov	ecx, 1024 * 1024
@@ -250,7 +284,6 @@ stosd
 add	eax, 4096
 loop	.2
 
-xchg	bx, bx
 mov	eax, PAGE_DIR_BASE
 mov	cr3, eax
 mov	eax, cr0
@@ -263,3 +296,96 @@ nop
 nop
 
 ret
+
+DisplayMemSize:
+push	szMemInfoHeaderOffset
+call	DisplayStr
+add	esp, 4
+call	DisplayReturn
+
+push	esi
+push	edi
+push	ecx
+push	ebx
+push	edx
+
+mov	esi, OffsetMemChkBuf
+mov	ecx, [OffsetTotalAdrs]
+
+.loop:
+
+;------ Display Low Base Address ------
+push	dword	[esi]
+call	DisplayInt
+pop	ebx	
+
+call	DisplayBlank
+
+add	esi, 4
+
+;------ Display High Base Address -------
+push	dword	[esi]
+call	DisplayInt
+add	esp, 4
+
+call 	DisplayBlank
+
+add	esi, 4
+
+;------- Display Low Length --------
+push	dword	[esi]
+call	DisplayInt
+pop	edx
+
+call	DisplayBlank
+
+add	esi, 4
+
+;------ Display High Length --------
+push	dword	[esi]
+call	DisplayInt
+add	esp, 4
+
+call	DisplayBlank
+
+add	esi, 4
+
+;------ Display Address Interval Type ------
+push	dword	[esi]
+call	DisplayInt
+add	esp, 4
+
+call	DisplayReturn
+
+cmp	dword	[esi], 1
+jne	.1
+mov	eax, ebx 
+add	eax, edx	
+cmp	eax, [OffsetMemSize]
+jb	.1
+mov	[OffsetMemSize], eax	
+
+add	esi, 4
+
+.1:
+loop	.loop
+
+call	DisplayReturn
+push	OffsetRamSize
+call	DisplayStr
+add	esp, 4
+
+push	dword	[OffsetMemSize]
+call	DisplayInt
+add	esp, 4	
+
+pop	edx
+pop	ebx
+pop	ecx
+pop	edi
+pop	esi
+
+ret
+
+;------------------------- Refer Library --------------------------
+%include	"display.inc"
