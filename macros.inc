@@ -118,3 +118,20 @@ DA_READ_WRITE_ACCESSED_DATA	equ	DA_CATEGORY_DC | DA_PRESENT | DA_TYPE_RW_ACCESSE
 ; Different Stack Segments
 DA_32BIT_READ_WRITE_STACK	equ	DA_STACK_USE_ESP | DA_PRESENT | DA_CATEGORY_DC | DA_TYPE_RW ; read write stack segment
 DA_32BIT_READ_WRITE_ACCESSED_STACK	equ	DA_STACK_USE_ESP | DA_PRESENT | DA_CATEGORY_DC | DA_TYPE_RW_ACCESSED ; read write accessed stack segment
+
+
+;---------------------------------- Memory Paging Macros ---------------------------------------
+PG_PRESENT		equ		1h
+PG_READ_ONLY		equ		0h
+PG_READ_WRITE		equ		2h
+PG_US_SUPER		equ		0h
+PG_US_USER		equ		4h
+PG_PWT_WB		equ		0h	; Page Cache Strategy - Write Back
+PG_PWT_WT		equ		8h	; Page Cache Strategy - Write Through
+PG_PCD_ENABLE		equ		0h	; Page Cachable ? True
+PG_PCD_DISABLE		equ		10h	; Page Cachable ? False
+PG_ACCESSED		equ		20h	
+PG_DIRTY		equ		40h	; Apply to page table entry only
+PG_PS_4KB		equ		0h	; Apply to page directory entry only	
+PG_PAT			equ		0h	; We don't use this, set to 0
+PG_GLOBAL		equ		100h	;
