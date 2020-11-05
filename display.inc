@@ -48,23 +48,23 @@ mov	edi, [OffsetCursorPosition]
 
 mov	ecx, 2
 mov	dl, al
-shr	dl, 4
+shr	al, 4
 .begin:
-and	dl, 0Fh
-cmp	dl, 10 
-jb	.1
-sub	dl, 10
-add	dl, 'A'
+and	al, 0Fh
+cmp	al, 9 
+ja	.1
+add	al, '0'
 jmp	.2
 
 .1:
-add	dl, '0'
+sub	al, 10
+add	al, 'A'
+
 .2:
-mov	al, dl
 mov	ah, 0Ch
 mov	[gs:edi], ax
 add	edi, 2
-mov	dl, al
+mov	al, dl
 loop	.begin
 
 mov	dword	[OffsetCursorPosition], edi

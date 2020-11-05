@@ -144,12 +144,12 @@ mov	edx, 0534D4150h
 int	15h
 jc	MEM_CHK_FAILED
 add	di, 20
-inc	byte	[dbTotalAdrs]
+inc	word	[ddTotalAdrs]
 cmp	ebx, 0
 jne	.loop
 jmp	MEM_CHK_OK
 MEM_CHK_FAILED:
-mov	byte	[dbTotalAdrs], 0
+mov	word	[ddTotalAdrs], 0
 MEM_CHK_OK:
 
 ret
@@ -213,8 +213,8 @@ MemChkBuf	times	256	db	0
 OffsetMemChkBuf	equ	MemChkBuf - $$
 ddMemSize	dd	0
 OffsetMemSize	equ	ddMemSize - $$
-dbTotalAdrs	db	0
-OffsetTotalAdrs	equ	dbTotalAdrs - $$
+ddTotalAdrs	dd	0
+OffsetTotalAdrs	equ	ddTotalAdrs - $$
 ddBaseLow	dd	0
 OffsetBaseLow	equ	ddBaseLow - $$
 ddLenLow	dd	0
@@ -254,6 +254,11 @@ call 	SetupPaging
 
 push	OffsetMessage
 call	DisplayStr
+add	esp, 4
+call	DisplayReturn
+
+push	0x9f000000
+call	DisplayInt
 add	esp, 4
 call	DisplayReturn
 
@@ -313,7 +318,6 @@ mov	esi, OffsetMemChkBuf
 mov	ecx, [OffsetTotalAdrs]
 
 .loop:
-
 ;------ Display Low Base Address ------
 push	dword	[esi]
 call	DisplayInt
