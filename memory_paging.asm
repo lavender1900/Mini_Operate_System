@@ -314,6 +314,7 @@ push	ecx
 push	ebx
 push	edx
 
+xchg	bx, bx
 mov	esi, OffsetMemChkBuf
 mov	ecx, [OffsetTotalAdrs]
 
@@ -369,9 +370,9 @@ cmp	eax, [OffsetMemSize]
 jb	.1
 mov	[OffsetMemSize], eax	
 
+.1:
 add	esi, 4
 
-.1:
 loop	.loop
 
 call	DisplayReturn

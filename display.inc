@@ -78,13 +78,13 @@ ret
 DisplayStr:
 push	ebp
 mov	ebp, esp
-; [ebp + 8] is the String offset
-
-push	edi
-mov	dword	edi, [OffsetCursorPosition]
-push	esi
-mov	dword	esi, [ebp + 8]
+push	ebx
 push	eax
+push	edi
+push	esi
+mov	dword	edi, [OffsetCursorPosition]
+mov	dword	esi, [ebp + 8]
+
 xor	eax, eax
 cld
 mov	ah, 0Ch
@@ -97,7 +97,6 @@ jz	.end
 cmp	al, 0Ah
 jnz	.normal
 
-push	eax
 mov	eax, edi
 mov	bl, 160
 div	bl
@@ -106,8 +105,6 @@ inc	eax
 mov	bl, 160
 mul	bl
 mov	edi, eax
-
-pop	eax
 
 jmp	.loop
 
@@ -119,9 +116,10 @@ jmp	.loop
 .end:
 mov	[OffsetCursorPosition], edi
 
-pop	eax
 pop	esi
 pop	edi
+pop	eax
+pop	ebx
 pop	ebp
 
 ret
