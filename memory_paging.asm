@@ -30,8 +30,9 @@ DESC_CODE16:	Descriptor	0,		0ffffh,			DA_16BIT_EXE_ONLY_CODE
 DESC_STACK:	Descriptor	0,		TopOfStack,		DA_32BIT_READ_WRITE_STACK
 DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA 
 DESC_VIDEO:	Descriptor	0B8000h,  	0ffffh,     		DA_READ_WRITE_DATA 
-DESC_PAGE_DIR:	Descriptor	PAGE_DIR_BASE,	4095, 			DA_READ_WRITE_DATA
-DESC_PAGE_TBL:	Descriptor	PAGE_TABLE_BASE,1023,			DA_READ_WRITE_DATA | DA_GRAN_4KB
+DESC_FLAT_C	Descriptor	0,		0fffffh,		DA_32BIT_EXE_ONLY_CODE | DA_GRAN_4KB
+DESC_FLAT_RW	Descriptor	0,		0fffffh,		DA_READ_WRITE_DATA | DA_GRAN_4KB			
+
 
 ; Return from 32bit mode, we need a proper selector loading into ds, es, ss etc
 DESC_WORK_AROUND Descriptor	0,		0ffffh,			DA_READ_WRITE_DATA 
@@ -48,9 +49,9 @@ SelectorCode16		equ	DESC_CODE16 - GDT_DUMMY
 SelectorData		equ	DESC_DATA - GDT_DUMMY 
 SelectorStack		equ	DESC_STACK - GDT_DUMMY
 SelectorVideo		equ	DESC_VIDEO - GDT_DUMMY
+SelectorFlatCode	equ	DESC_FLAT_C - GDT_DUMMY
+SelectorFlatRw		equ	DESC_FLAT_RW - GDT_DUMMY
 SelectorWorkAround	equ	DESC_WORK_AROUND - GDT_DUMMY
-SelectorPageDir		equ	DESC_PAGE_DIR - GDT_DUMMY
-SelectorPageTbl		equ	DESC_PAGE_TBL - GDT_DUMMY
 
 [section .s16]
 align 16
@@ -200,30 +201,35 @@ int	21h
 align 32
 [bits 32]
 SEG_DATA:
+; ---------- Import system variables -----------
 SPValueInRealMode	dw	0
 ddCursorPosition	dd	0
 OffsetCursorPosition	equ	ddCursorPosition - $$
+ddPageTableNumber	dd	0
+OffsetPageTableNumber	equ	ddPageTableNumber - $$
+MemChkBuf times	256	db	0
+OffsetMemChkBuf		equ	MemChkBuf - $$
+ddMemSize		dd	0
+OffsetMemSize		equ	ddMemSize - $$
+ddTotalAdrs		dd	0
+OffsetTotalAdrs		equ	ddTotalAdrs - $$
+ddBaseLow		dd	0
+OffsetBaseLow		equ	ddBaseLow - $$
+ddLenLow		dd	0
+OffsetLenLow		equ	ddLenLow - $$
+
+; ---------- String variables ------------
 szReturn		db	0Ah,0
 OffsetReturn		equ	szReturn - $$
-PMMessage:	db	"In Protect Mode now. ^-^",0Ah,0
-OffsetMessage	equ	PMMessage - $$
-StrTest:	db	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",0
-OffsetStrTest	equ	StrTest - $$
-MemChkBuf	times	256	db	0
-OffsetMemChkBuf	equ	MemChkBuf - $$
-ddMemSize	dd	0
-OffsetMemSize	equ	ddMemSize - $$
-ddTotalAdrs	dd	0
-OffsetTotalAdrs	equ	ddTotalAdrs - $$
-ddBaseLow	dd	0
-OffsetBaseLow	equ	ddBaseLow - $$
-ddLenLow	dd	0
-OffsetLenLow	equ	ddLenLow - $$
-szRamSize	db	"Ram size:",0
-OffsetRamSize	equ	szRamSize - $$
-szMemInfoHeader	db	"BaseAddrL BaseAddrH LengthLow LengthHigh    Type",0
+PMMessage:		db	"In Protect Mode now. ^-^",0Ah,0
+OffsetMessage		equ	PMMessage - $$
+StrTest:		db	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",0
+OffsetStrTest		equ	StrTest - $$
+szRamSize		db	"Ram size:",0
+OffsetRamSize		equ	szRamSize - $$
+szMemInfoHeader		db	"BaseAddrL BaseAddrH LengthLow LengthHigh    Type",0
 szMemInfoHeaderOffset	equ	szMemInfoHeader - $$
-DataLen		equ	$ - SEG_DATA
+DataLen			equ	$ - SEG_DATA
 
 [section .stack]
 align 32
@@ -275,12 +281,12 @@ test	edx, edx		; edx stores the remainder
 jz	.noremainder
 inc	ecx
 .noremainder:
-push	ecx			; temporarily store
+mov	dword	[OffsetPageTableNumber], ecx
 
-mov	ax, SelectorPageDir
+; init page directory entries
+mov	ax, SelectorFlatRw
 mov	es, ax
-mov	ecx, 1024
-xor	edi, edi
+mov	edi, PAGE_DIR_BASE
 xor	eax, eax
 mov	eax, PAGE_TABLE_BASE | PG_PRESENT | PG_US_USER | PG_READ_WRITE
 .1:
@@ -288,14 +294,13 @@ stosd
 add	eax, 4096
 loop	.1
 
-mov	ax, SelectorPageTbl
-mov	es, ax
-pop	eax
+; init page table entries
+mov	eax, [OffsetPageTableNumber]
 mov	ebx, 1024
 mul	ebx
 mov	ecx, eax		; Page table entry number
-xor	edi, edi
 xor	eax, eax
+mov	edi, PAGE_TABLE_BASE
 mov	eax, PG_PRESENT | PG_US_USER | PG_READ_WRITE
 .2:
 stosd
