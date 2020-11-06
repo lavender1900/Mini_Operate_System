@@ -11,10 +11,18 @@
 ; So, we will strip unuseful code comparing to memory paging function
 
 ; Hard coded Page directory and page table base address
-PAGE_DIR_BASE		equ	200000h
-PAGE_TABLE_BASE		equ	201000h
+PAGE_DIR_BASE0		equ	200000h
+PAGE_TABLE_BASE0	equ	201000h
 
-%include	"macros.inc"
+PAGE_DIR_BASE1		equ	300000h
+PAGE_TABLE_BASE1	equ	301000h
+
+LinearAddrDemo		equ	401000h
+ProcFoo			equ	401000h
+ProcBar			equ	501000h
+ProcPagingDemo		equ	380000h
+
+%include	"include/macros.inc"
 
 org	0100h ; nasm directive - relocate label address by 0x0100
 
@@ -25,7 +33,7 @@ jmp	BEGIN
 GDT_START:
 			;    Base Address     Segment Limit      Attributes
 GDT_DUMMY:	Descriptor	0,		0,			0 			; First descriptor is not used
-DESC_CODE32:	Descriptor     	0,		0ffffh,   		DA_32BIT_EXE_ONLY_CODE
+DESC_CODE32:	Descriptor     	0,		0ffffh,   		DA_32BIT_EXE_READ_CODE
 DESC_CODE16:	Descriptor	0,		0ffffh,			DA_16BIT_EXE_ONLY_CODE 
 DESC_STACK:	Descriptor	0,		TopOfStack,		DA_32BIT_READ_WRITE_STACK
 DESC_DATA:	Descriptor	0,		DataLen - 1,		DA_READ_WRITE_DATA 
@@ -201,7 +209,7 @@ int	21h
 align 32
 [bits 32]
 SEG_DATA:
-; ---------- Import system variables -----------
+; ---------- Important system variables -----------
 SPValueInRealMode	dw	0
 _dwCursorPosition	dd	0
 dwCursorPosition	equ	_dwCursorPosition - $$
@@ -221,8 +229,14 @@ _szPMMessage:		db	"In Protect Mode now. ^-^",0Ah,0
 szPMMessage		equ	_szPMMessage - $$
 _szRamSize		db	"Ram size:",0
 szRamSize		equ	_szRamSize - $$
-_szMemInfoHeader		db	"BaseAddrL BaseAddrH LengthLow LengthHigh    Type",0
+_szMemInfoHeader		db	"BaseAddrL BaseAddrH LengthLow LengthHigh    Type",0Ah,0
 szMemInfoHeader		equ	_szMemInfoHeader - $$
+
+_szFoo			db	"Hello there, it's foo!",0Ah,0
+szFoo			equ	_szFoo - $$
+_szBar			db	"Ah ha, magic made me bar!!!",0Ah,0
+szBar			equ	_szBar - $$	
+
 DataLen			equ	$ - SEG_DATA
 
 [section .stack]
@@ -255,9 +269,12 @@ add	esp, 4
 
 ; Show memory distribution
 call	DisplayMemSize
+call	DisplayReturn
 
 ; Init Memory Paging
 call 	SetupPaging
+
+call	PagingDemo
 
 jmp	SelectorCode16:0	
 
@@ -280,9 +297,9 @@ mov	dword	[dwPageTableNumber], ecx
 ; init page directory entries
 mov	ax, SelectorFlatRw
 mov	es, ax
-mov	edi, PAGE_DIR_BASE
+mov	edi, PAGE_DIR_BASE0
 xor	eax, eax
-mov	eax, PAGE_TABLE_BASE | PG_PRESENT | PG_US_USER | PG_READ_WRITE
+mov	eax, PAGE_TABLE_BASE0 | PG_PRESENT | PG_US_USER | PG_READ_WRITE
 .1:
 stosd
 add	eax, 4096
@@ -294,14 +311,14 @@ mov	ebx, 1024
 mul	ebx
 mov	ecx, eax		; Page table entry number
 xor	eax, eax
-mov	edi, PAGE_TABLE_BASE
+mov	edi, PAGE_TABLE_BASE0
 mov	eax, PG_PRESENT | PG_US_USER | PG_READ_WRITE
 .2:
 stosd
 add	eax, 4096
 loop	.2
 
-mov	eax, PAGE_DIR_BASE
+mov	eax, PAGE_DIR_BASE0
 mov	cr3, eax
 mov	eax, cr0
 or	eax, 80000000h
@@ -321,7 +338,6 @@ DisplayMemSize:
 push	szMemInfoHeader
 call	DisplayStr
 add	esp, 4
-call	DisplayReturn
 
 push	esi
 push	edi
@@ -406,5 +422,145 @@ pop	esi
 
 ret
 
-;------------------------- Refer Library --------------------------
-%include	"display.inc"
+PagingDemo:
+mov	ax, SelectorFlatRw
+mov	es, ax
+mov	ax, SelectorCode32
+mov	ds, ax
+
+; MemCpy(void* srcPtr, void* destPtr, int length)
+push	LenFoo
+push	ProcFoo
+push	OffsetFoo
+call	MemCpy
+add	esp, 12
+
+push	LenBar
+push	ProcBar
+push	OffsetBar
+call	MemCpy
+add	esp, 12
+
+push	LenPagingDemo
+push	ProcPagingDemo
+push	OffsetPagingDemoProc
+call	MemCpy
+add	esp, 12
+
+mov	ax, SelectorData
+mov	ds, ax
+mov	es, ax
+
+call	SelectorFlatCode:ProcPagingDemo
+call	PagingSwitch
+call	SelectorFlatCode:ProcPagingDemo
+
+ret
+
+PagingDemoProc:
+OffsetPagingDemoProc	equ	PagingDemoProc - $$
+mov	eax, LinearAddrDemo
+call	eax
+retf
+
+LenPagingDemo	equ	$ - PagingDemoProc
+
+foo:
+OffsetFoo	equ	foo - $$
+push	ebx
+
+mov	ah, 0Ch
+mov	al, 'F'
+mov	ebx, [dwCursorPosition]
+mov	[gs:ebx], ax
+add	ebx, 2
+mov	al, 'O'
+mov	[gs:ebx], ax
+add	ebx, 2
+mov	[gs:ebx], ax
+add	ebx, 2
+
+mov	[dwCursorPosition], ebx
+
+pop	ebx
+
+ret
+
+LenFoo	equ	$ - foo
+
+bar:
+OffsetBar	equ	bar - $$
+push	ebx
+
+mov	ah, 0Ch
+mov	al, 'B'
+mov	ebx, [dwCursorPosition]
+mov	[gs:ebx], ax
+add	ebx, 2
+mov	al, 'A'
+mov	[gs:ebx], ax
+add	ebx, 2
+mov	al, 'R'
+mov	[gs:ebx], ax
+add	ebx, 2
+mov	[dwCursorPosition], ebx
+
+pop	ebx
+
+ret
+
+LenBar	equ	$ - bar
+
+PagingSwitch:
+mov	ax, SelectorFlatRw
+mov	es, ax
+mov	edi, PAGE_DIR_BASE1
+xor	eax, eax
+mov	eax, PAGE_TABLE_BASE1 | PG_PRESENT | PG_US_USER | PG_READ_WRITE
+mov	ecx, [dwPageTableNumber]
+.1:
+stosd
+add	eax, 4096
+loop	.1
+
+mov	eax, [dwPageTableNumber]
+mov	ebx, 1024
+mul	ebx
+mov	ecx, eax
+mov	edi, PAGE_TABLE_BASE1
+xor	eax, eax
+mov	eax, PG_PRESENT | PG_US_USER | PG_READ_WRITE
+
+.2:
+stosd
+add	eax, 4096
+loop	.2
+
+mov	eax, LinearAddrDemo
+shr	eax, 22
+mov	ebx, 4096
+mul	ebx
+mov	ecx, eax
+mov	eax, LinearAddrDemo
+shr	eax, 12
+and	eax, 03FFh
+mov	ebx, 4
+mul	ebx
+add	eax, ecx
+add	eax, PAGE_TABLE_BASE1
+mov	dword	[es:eax], ProcBar | PG_PRESENT | PG_US_USER | PG_READ_WRITE
+
+mov	eax, PAGE_DIR_BASE1
+mov	cr3, eax
+jmp	short	.3
+
+.3:
+nop
+nop
+nop
+
+ret
+
+;------------------------- Refered Library --------------------------
+%include	"include/display.inc"
+%include	"include/memory.inc"
