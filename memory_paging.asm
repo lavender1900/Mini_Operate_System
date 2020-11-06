@@ -10,13 +10,13 @@
 ;
 ; So, we will strip unuseful code comparing to memory paging function
 
+; Hard coded Page directory and page table base address
+PAGE_DIR_BASE		equ	200000h
+PAGE_TABLE_BASE		equ	201000h
+
 %include	"macros.inc"
 
 org	0100h ; nasm directive - relocate label address by 0x0100
-
-; Hard code page directory and page table address
-PAGE_DIR_BASE	equ	200000h
-PAGE_TABLE_BASE	equ	201000h
 
 jmp	BEGIN	
 
@@ -137,7 +137,7 @@ jmp	dword SelectorCode32: 0 ; jump into protect mode
 
 ReadingMemoryInfo:
 mov	ebx, 0
-mov	di, MemChkBuf
+mov	di, _MemChkBuf
 .loop:
 mov	eax, 0E820h
 mov	ecx, 20
@@ -145,12 +145,12 @@ mov	edx, 0534D4150h
 int	15h
 jc	MEM_CHK_FAILED
 add	di, 20
-inc	word	[ddTotalAdrs]
+inc	dword	[_dwTotalAdrs]
 cmp	ebx, 0
 jne	.loop
 jmp	MEM_CHK_OK
 MEM_CHK_FAILED:
-mov	word	[ddTotalAdrs], 0
+mov	dword	[_dwTotalAdrs], 0
 MEM_CHK_OK:
 
 ret
@@ -203,32 +203,26 @@ align 32
 SEG_DATA:
 ; ---------- Import system variables -----------
 SPValueInRealMode	dw	0
-ddCursorPosition	dd	0
-OffsetCursorPosition	equ	ddCursorPosition - $$
-ddPageTableNumber	dd	0
-OffsetPageTableNumber	equ	ddPageTableNumber - $$
-MemChkBuf times	256	db	0
-OffsetMemChkBuf		equ	MemChkBuf - $$
-ddMemSize		dd	0
-OffsetMemSize		equ	ddMemSize - $$
-ddTotalAdrs		dd	0
-OffsetTotalAdrs		equ	ddTotalAdrs - $$
-ddBaseLow		dd	0
-OffsetBaseLow		equ	ddBaseLow - $$
-ddLenLow		dd	0
-OffsetLenLow		equ	ddLenLow - $$
+_dwCursorPosition	dd	0
+dwCursorPosition	equ	_dwCursorPosition - $$
+_dwPageTableNumber	dd	0
+dwPageTableNumber	equ	_dwPageTableNumber - $$
+_MemChkBuf times	256	db	0
+MemChkBuf		equ	_MemChkBuf - $$
+_dwMemSize		dd	0
+dwMemSize		equ	_dwMemSize - $$
+_dwTotalAdrs		dd	0
+dwTotalAdrs		equ	_dwTotalAdrs - $$
 
 ; ---------- String variables ------------
-szReturn		db	0Ah,0
-OffsetReturn		equ	szReturn - $$
-PMMessage:		db	"In Protect Mode now. ^-^",0Ah,0
-OffsetMessage		equ	PMMessage - $$
-StrTest:		db	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",0
-OffsetStrTest		equ	StrTest - $$
-szRamSize		db	"Ram size:",0
-OffsetRamSize		equ	szRamSize - $$
-szMemInfoHeader		db	"BaseAddrL BaseAddrH LengthLow LengthHigh    Type",0
-szMemInfoHeaderOffset	equ	szMemInfoHeader - $$
+_szReturn		db	0Ah,0
+szReturn		equ	_szReturn - $$
+_szPMMessage:		db	"In Protect Mode now. ^-^",0Ah,0
+szPMMessage		equ	_szPMMessage - $$
+_szRamSize		db	"Ram size:",0
+szRamSize		equ	_szRamSize - $$
+_szMemInfoHeader		db	"BaseAddrL BaseAddrH LengthLow LengthHigh    Type",0
+szMemInfoHeader		equ	_szMemInfoHeader - $$
 DataLen			equ	$ - SEG_DATA
 
 [section .stack]
@@ -255,7 +249,7 @@ push	8
 call	DisplayMultiReturn
 add	esp, 4
 
-push	OffsetMessage
+push	szPMMessage	
 call	DisplayStr
 add	esp, 4
 
@@ -273,7 +267,7 @@ SetupPaging:
 push	edx
 push	ebx
 xor	edx, edx
-mov	eax, [OffsetMemSize]
+mov	eax, [dwMemSize]
 mov	ebx, 400000h 		; 4MB - Mapped memory size to a page directory entry
 div	ebx
 mov	ecx, eax		; ecx stores the quotient
@@ -281,7 +275,7 @@ test	edx, edx		; edx stores the remainder
 jz	.noremainder
 inc	ecx
 .noremainder:
-mov	dword	[OffsetPageTableNumber], ecx
+mov	dword	[dwPageTableNumber], ecx
 
 ; init page directory entries
 mov	ax, SelectorFlatRw
@@ -295,7 +289,7 @@ add	eax, 4096
 loop	.1
 
 ; init page table entries
-mov	eax, [OffsetPageTableNumber]
+mov	eax, [dwPageTableNumber]
 mov	ebx, 1024
 mul	ebx
 mov	ecx, eax		; Page table entry number
@@ -324,7 +318,7 @@ pop	edx
 ret
 
 DisplayMemSize:
-push	szMemInfoHeaderOffset
+push	szMemInfoHeader
 call	DisplayStr
 add	esp, 4
 call	DisplayReturn
@@ -335,8 +329,8 @@ push	ecx
 push	ebx
 push	edx
 
-mov	esi, OffsetMemChkBuf
-mov	ecx, [OffsetTotalAdrs]
+mov	esi, MemChkBuf
+mov	ecx, [dwTotalAdrs]
 
 .loop:
 ;------ Display Low Base Address ------
@@ -386,9 +380,9 @@ cmp	dword	[esi], 1
 jne	.1
 mov	eax, ebx 
 add	eax, edx	
-cmp	eax, [OffsetMemSize]
+cmp	eax, [dwMemSize]
 jb	.1
-mov	[OffsetMemSize], eax	
+mov	[dwMemSize], eax	
 
 .1:
 add	esi, 4
@@ -396,11 +390,11 @@ add	esi, 4
 loop	.loop
 
 call	DisplayReturn
-push	OffsetRamSize
+push	szRamSize
 call	DisplayStr
 add	esp, 4
 
-push	dword	[OffsetMemSize]
+push	dword	[dwMemSize]
 call	DisplayInt
 add	esp, 4	
 

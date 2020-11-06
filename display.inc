@@ -4,8 +4,8 @@
 
 ; Display a blank space
 DisplayBlank:
-inc	dword	[OffsetCursorPosition]
-inc	dword	[OffsetCursorPosition]
+inc	dword	[dwCursorPosition]
+inc	dword	[dwCursorPosition]
 
 ret
 
@@ -29,10 +29,10 @@ call	DisplayAL
 mov	ah, 07h		; 0000b - black background, 0111b - gray chars 
 mov	al, 'h'
 push	edi
-mov	edi, [OffsetCursorPosition]
+mov	edi, [dwCursorPosition]
 mov	[gs:edi], ax
 add	edi, 2 
-mov	[OffsetCursorPosition], edi
+mov	[dwCursorPosition], edi
 pop	edi
 
 ret
@@ -44,7 +44,7 @@ push	ecx
 push	edx
 push	edi
 
-mov	edi, [OffsetCursorPosition]
+mov	edi, [dwCursorPosition]
 
 mov	ecx, 2
 mov	dl, al
@@ -67,7 +67,7 @@ add	edi, 2
 mov	al, dl
 loop	.begin
 
-mov	dword	[OffsetCursorPosition], edi
+mov	dword	[dwCursorPosition], edi
 pop	edi
 pop	edx
 pop	ecx
@@ -82,7 +82,7 @@ push	ebx
 push	eax
 push	edi
 push	esi
-mov	dword	edi, [OffsetCursorPosition]
+mov	dword	edi, [dwCursorPosition]
 mov	dword	esi, [ebp + 8]
 
 xor	eax, eax
@@ -114,7 +114,7 @@ add	edi, 2
 jmp	.loop
 
 .end:
-mov	[OffsetCursorPosition], edi
+mov	[dwCursorPosition], edi
 
 pop	esi
 pop	edi
@@ -127,7 +127,7 @@ ret
 
 ; Display Return
 DisplayReturn:
-push	OffsetReturn	
+push	szReturn	
 call	DisplayStr
 add	esp, 4
 
