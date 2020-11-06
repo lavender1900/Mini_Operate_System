@@ -205,7 +205,7 @@ ddCursorPosition	dd	0
 OffsetCursorPosition	equ	ddCursorPosition - $$
 szReturn		db	0Ah,0
 OffsetReturn		equ	szReturn - $$
-PMMessage:	db	"In Protect Mode now. ^-^",0
+PMMessage:	db	"In Protect Mode now. ^-^",0Ah,0
 OffsetMessage	equ	PMMessage - $$
 StrTest:	db	"ABCDEFGHIJKLMNOPQRSTUVWXYZ",0
 OffsetStrTest	equ	StrTest - $$
@@ -245,28 +245,38 @@ mov	esp, TopOfStack
 mov	ax, SelectorVideo
 mov	gs, ax
 
-mov	al, 'L'
-call	DisplayAL
-call	DisplayReturn
-
-; Init Memory Paging
-call 	SetupPaging
+push	8
+call	DisplayMultiReturn
+add	esp, 4
 
 push	OffsetMessage
 call	DisplayStr
 add	esp, 4
-call	DisplayReturn
 
-push	0x9f000000
-call	DisplayInt
-add	esp, 4
-call	DisplayReturn
-
+; Show memory distribution
 call	DisplayMemSize
+
+; Init Memory Paging
+call 	SetupPaging
 
 jmp	SelectorCode16:0	
 
+; init paging according to actual memory size
 SetupPaging:
+; calculate
+push	edx
+push	ebx
+xor	edx, edx
+mov	eax, [OffsetMemSize]
+mov	ebx, 400000h 		; 4MB - Mapped memory size to a page directory entry
+div	ebx
+mov	ecx, eax		; ecx stores the quotient
+test	edx, edx		; edx stores the remainder
+jz	.noremainder
+inc	ecx
+.noremainder:
+push	ecx			; temporarily store
+
 mov	ax, SelectorPageDir
 mov	es, ax
 mov	ecx, 1024
@@ -280,7 +290,10 @@ loop	.1
 
 mov	ax, SelectorPageTbl
 mov	es, ax
-mov	ecx, 1024 * 1024
+pop	eax
+mov	ebx, 1024
+mul	ebx
+mov	ecx, eax		; Page table entry number
 xor	edi, edi
 xor	eax, eax
 mov	eax, PG_PRESENT | PG_US_USER | PG_READ_WRITE
@@ -300,6 +313,9 @@ nop
 nop
 nop
 
+pop	ebx
+pop	edx
+
 ret
 
 DisplayMemSize:
@@ -314,7 +330,6 @@ push	ecx
 push	ebx
 push	edx
 
-xchg	bx, bx
 mov	esi, OffsetMemChkBuf
 mov	ecx, [OffsetTotalAdrs]
 

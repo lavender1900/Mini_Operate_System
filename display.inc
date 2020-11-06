@@ -132,3 +132,18 @@ call	DisplayStr
 add	esp, 4
 
 ret
+
+; Display Multiple Return
+DisplayMultiReturn:
+push	ebp
+mov	ebp, esp
+push	ecx
+mov	dword	ecx, [ebp + 8]
+.1:
+call	DisplayReturn
+loop	.1
+
+pop	ecx
+pop	ebp
+
+ret
