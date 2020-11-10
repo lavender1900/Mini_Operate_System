@@ -14,6 +14,7 @@ GDT_START:
 GDT_DUMMY:		Descriptor	0,		0,		0
 DESC_FLAT_C:		Descriptor	0,		0fffffh,	DA_32BIT_EXE_ONLY_CODE | DA_GRAN_4KB
 DESC_FLAT_RW:		Descriptor	0,		0fffffh,	DA_READ_WRITE_DATA | DA_GRAN_4KB 
+DESC_STACK:		Descriptor	0,		0fffffh,	DA_32BIT_READ_WRITE_STACK | DA_GRAN_4KB
 DESC_VIDEO:		Descriptor	0B8000h,	0ffffh,		DA_READ_WRITE_DATA | DA_DPL3
 
 GDTLen		equ		$ - GDT_START
@@ -22,6 +23,7 @@ GDTPtr		dw		GDTLen - 1				; GDT Limit
 
 SelectorFlatC		equ	DESC_FLAT_C - GDT_DUMMY
 SelectorFlatRw		equ	DESC_FLAT_RW - GDT_DUMMY
+SelectorStack		equ	DESC_STACK - GDT_DUMMY
 SelectorVideo		equ	(DESC_VIDEO - GDT_DUMMY) | SA_RPL3 
 
 %include	"include/fat12header.inc"
@@ -190,7 +192,7 @@ szBootMessage:		db	"Loading Kernel"
 szNoKernel		db	"No Kernel     "
 szKernelLoaded:		db	"Kernel Loaded "
 
-_dwCursorPosition	dd	0
+_dwCursorPosition	dd	(80 * 8 + 0) * 2		; 8th line, 0 column
 dwCursorPosition	equ	BaseOfLoaderPhysicAddr + _dwCursorPosition
 _MemChkBuf times	256	db	0
 MemChkBuf		equ	BaseOfLoaderPhysicAddr + _MemChkBuf
@@ -221,18 +223,17 @@ mov	ax, SelectorFlatRw
 mov	ds, ax
 mov	es, ax
 mov	fs, ax
+mov	ax, SelectorStack
 mov	ss, ax
 mov	esp, TopOfStack
 mov	ax, SelectorVideo
 mov	gs, ax
 
-push	123456h
-
 call	DisplayMemSize
 
+jmp	$ 
+
 DisplayMemSize:
-xchg	bx, bx
-push	987654h
 push	szMemInfoHeader
 call	DisplayStr
 add	esp, 4
