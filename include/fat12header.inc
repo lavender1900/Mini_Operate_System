@@ -18,7 +18,7 @@
 ;    |    FAT2     |
 ; 18 |             |
 ;----------------------------
-;    |             |
+; 19 |             |
 ;    | Root Directory
 ;    | Not Fixed Length
 ;    |  .......    |
@@ -29,9 +29,6 @@
 ;2879| ........    |
 ;----------------------------
  
-
-jmp	short	BOOT_START
-nop
 
 BS_OEMNAME		db	'Lavender'
 BPB_BytesPerSec		dw	512		; Bytes per sector
@@ -52,3 +49,9 @@ BS_BootSig		db	29h
 BS_VolID		dd	0
 BS_ValLabel		db	'Lavender0.1'
 BS_FileSysType		db	'FAT12   '	; File System
+
+FATSize			equ	9
+RootDirSectors		equ	14		; (BPB_RootEntryCnt * 32) / BPB_BytesPerSec
+SectorNoOfRootDirectory	equ	19
+SectorNoOfFAT1		equ	1
+DeltaSectorNo		equ	17

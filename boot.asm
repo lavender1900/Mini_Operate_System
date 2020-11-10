@@ -1,12 +1,11 @@
 ; We will write a FAT12 compatible boot sector
 
-%ifdef	_BOOT_DEBUG_
-	org	0100h
-%else
-	org	07c00h
-%endif
+org	07c00h
 
-%include	"include/fat12.inc"
+jmp	BOOT_START
+nop
+
+%include	"include/fat12header.inc"
 
 BOOT_START:
 mov	ax, cs
@@ -29,23 +28,25 @@ mov	cx, 0
 mov	dx, 0184fh
 int	10h
 
+push	0
 mov	dh, 0
-call	DispStr
+call	DispStrRealMode
+add	sp, 2 
 
 mov	word 	[wSectorNo], SectorNoOfRootDirectory
 SEARCH_IN_ROOT_DIR_BEGIN:
 cmp	word	[wRootDirSizeForLoop], 0
 jz	NO_LOADERBIN
 dec	word	[wRootDirSizeForLoop]
-mov	ax, BaseOfLoader
+mov	ax, BaseOfFile
 mov	es, ax
-mov	bx, OffsetOfLoader
+mov	bx, OffsetOfFile
 mov	ax, [wSectorNo]
 mov	cl, 1
 call	ReadSector
 
 mov	si, szLoaderFileName
-mov	di, OffsetOfLoader
+mov	di, OffsetOfFile
 cld
 mov	dx, 10h
 
@@ -78,8 +79,10 @@ add	word [wSectorNo], 1
 jmp	SEARCH_IN_ROOT_DIR_BEGIN
 
 NO_LOADERBIN:
-mov	dh, 2
-call	DispStr
+push	0
+mov	dh, 1
+call	DispStrRealMode
+add	sp, 2
 
 %ifdef	_BOOT_DEBUG_
 mov	ax, 4c00h
@@ -96,9 +99,9 @@ mov	cx, word [es:di]
 push	cx		; Data area sector no(start from 2)
 add	cx, ax
 add	cx, DeltaSectorNo
-mov	ax, BaseOfLoader
+mov	ax, BaseOfFile
 mov	es, ax
-mov	bx, OffsetOfLoader
+mov	bx, OffsetOfFile
 mov	ax, cx			; Sector no to be read
 
 GO_ON_LOADING_FILE:
@@ -125,114 +128,18 @@ add	bx, [BPB_BytesPerSec]
 jmp	GO_ON_LOADING_FILE
 
 FILE_LOADED:
-jmp	BaseOfLoader:OffsetOfLoader	
+jmp	BaseOfFile:OffsetOfFile	
 
-
-; 1.44MB floppy has 2 heads, 80 tracks per head, 18 sectors per track
-; total 2 * 80 * 18 * 512 = 1.44MB
-ReadSector:
-push	bp
-mov	bp, sp
-sub	esp, 2
-
-mov	byte	[bp-2], cl	; save sector number to be read
-push	bx
-mov	bl, [BPB_SecPerTrack]	; (sector no) / 18
-div	bl
-inc	ah			; Sector no is start from 1, NOT 0
-mov	cl, ah
-mov	dh, al
-shr	al, 1
-mov	ch, al			; Cylinder no
-and	dh, 1
-pop	bx
-
-mov	dl, [BS_DriverNum]
-.GoOnReading:
-mov	ah, 2
-mov	al, byte [bp-2]
-int	13h
-jc	.GoOnReading
-
-add	esp, 2
-pop	bp
-
-ret
-
-GetFATEntry:
-push	es
-push	bx
-push	ax
-mov	ax, BaseOfLoader
-sub	ax, 100h
-mov	es, ax		; Keep 4KB space before BaseOfLoader:0100h
-pop	ax
-mov	byte	[bOdd], 0
-mov	bx, 3
-mul	bx
-mov	bx, 2
-div	bx
-cmp	dx, 0
-jz	EVEN
-mov	byte	[bOdd], 1
-
-EVEN:
-xor	dx, dx
-mov	bx, [BPB_BytesPerSec]
-div	bx
-push	dx
-mov	bx, 0
-add	ax, SectorNoOfFAT1
-mov	cl, 2
-call	ReadSector
-
-pop	dx
-add	bx, dx
-mov	ax, [es:bx]
-cmp	byte [bOdd], 1
-jnz	EVEN_2
-shr	ax, 4
-EVEN_2:
-and	ax, 0FFFh
-
-GAT_ENTRY_OK:
-pop	bx
-pop	es
-ret
-
-DispStr:
-mov	ax, MessageLength
-mul	dh
-add	ax, szBootMessage
-mov	bp, ax
-mov	ax, ds
-mov	es, ax
-mov	cx, MessageLength
-mov	ax, 01301h
-mov	bx, 07h
-mov	dl, 0
-int	10h
-
-ret
-
-
-wSectorNo	dw	0
-wRootDirSizeForLoop	dw	RootDirSectors	
-bOdd		db	0
+; include ReadSector, GetFatEntry functions
+%include 	"include/fat12read.inc"
 
 szLoaderFileName	db	"LOADER  BIN",0
 MessageLength		equ	9
 szBootMessage:		db	"Booting  "
-szReadyMessage:		db	"Ready.   "
 szNoLoader:		db	"No Loader"
-szLoaded:		db	"Loaded!!!"
 
-BaseOfLoader		equ	9000h
-OffsetOfLoader		equ	100h
-RootDirSectors		equ	14
-SectorNoOfRootDirectory	equ	19
-SectorNoOfFAT1		equ	1
-DeltaSectorNo		equ	17
+BaseOfFile		equ	9000h
+OffsetOfFile		equ	100h
 
 times	510 - ($ - $$) db	0
 dw	0xaa55
