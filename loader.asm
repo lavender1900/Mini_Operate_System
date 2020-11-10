@@ -8,7 +8,7 @@ jmp	LOADER_START
 
 %include	"include/macros.inc"
 
-; Global Descriptor Table
+;************************** Global Descriptor Table *********************************
 GDT_START:
 				; Base Address	  Segment Limit	      Attributes
 GDT_DUMMY:		Descriptor	0,		0,		0
@@ -44,6 +44,7 @@ xor	ah, ah
 xor	dl, dl
 int	13h		; Reset Floppy
 
+;******************** Try to find kernel.bin in floppy, if found load kernel.bin to memory then jump to it ****************************
 mov	word 	[wSectorNo], SectorNoOfRootDirectory
 SEARCH_IN_ROOT_DIR_BEGIN:
 cmp	word	[wRootDirSizeForLoop], 0
@@ -159,7 +160,7 @@ mov	cr0, eax
 
 jmp	dword SelectorFlatC:(BaseOfLoaderPhysicAddr + PROTECT_START)
 
-; Reading Memory Distribution Info
+;*********************** Reading Memory Distribution Info *******************************
 ReadingMemoryInfo:
 mov	ebx, 0
 mov	di, _MemChkBuf
@@ -183,6 +184,7 @@ ret
 ; include ReadSector, GetFatEntry functions
 %include 	"include/fat12read.inc"
 
+;****************************** Data Area *********************************
 StackSpace:	times	1024	db	0
 TopOfStack	equ	BaseOfLoaderPhysicAddr + $
 
@@ -192,6 +194,8 @@ szBootMessage:		db	"Loading Kernel"
 szNoKernel		db	"No Kernel     "
 szKernelLoaded:		db	"Kernel Loaded "
 
+_dwPageTableNumber	dd	0
+dwPageTableNumber	equ	BaseOfLoaderPhysicAddr + _dwPageTableNumber 
 _dwCursorPosition	dd	(80 * 8 + 0) * 2		; 8th line, 0 column
 dwCursorPosition	equ	BaseOfLoaderPhysicAddr + _dwCursorPosition
 _MemChkBuf times	256	db	0
@@ -214,6 +218,10 @@ BaseOfStack		equ	0100h
 BaseOfFile		equ	08000h
 OffsetOfFile		equ	0h
 BaseOfLoaderPhysicAddr	equ	090000h	
+BaseOfKernelPhysicAddr	equ	080000h
+KernelEntryPointPhyAddr	equ	030400h
+PAGE_DIR_BASE		equ	100000h		; 1MB
+PAGE_TABLE_BASE		equ	101000h		; 1MB + 4KB
 
 [section .code32]
 align 32
@@ -231,8 +239,13 @@ mov	gs, ax
 
 call	DisplayMemSize
 
-jmp	$ 
+call	SetupPaging
 
+call	MoveKernelToElfSpecified
+
+jmp	SelectorFlatC:KernelEntryPointPhyAddr
+
+;********************* Display Memory And Caculate maximum available memory ***********************
 DisplayMemSize:
 push	szMemInfoHeader
 call	DisplayStr
@@ -321,4 +334,96 @@ pop	esi
 
 ret
 
+;************************** init paging according to actual memory size ********************************** 
+SetupPaging:
+; calculate
+push	edx
+push	ebx
+xor	edx, edx
+mov	eax, [dwMemSize]
+mov	ebx, 400000h 		; 4MB - Mapped memory size to a page directory entry
+div	ebx
+mov	ecx, eax		; ecx stores the quotient
+test	edx, edx		; edx stores the remainder
+jz	.noremainder
+inc	ecx
+.noremainder:
+mov	dword	[dwPageTableNumber], ecx
+
+; init page directory entries
+mov	ax, SelectorFlatRw
+mov	es, ax
+mov	edi, PAGE_DIR_BASE
+xor	eax, eax
+mov	eax, PAGE_TABLE_BASE | PG_PRESENT | PG_US_USER | PG_READ_WRITE
+.1:
+stosd
+add	eax, 4096
+loop	.1
+
+; init page table entries
+mov	eax, [dwPageTableNumber]
+mov	ebx, 1024
+mul	ebx
+mov	ecx, eax		; Page table entry number
+xor	eax, eax
+mov	edi, PAGE_TABLE_BASE
+mov	eax, PG_PRESENT | PG_US_USER | PG_READ_WRITE
+.2:
+stosd
+add	eax, 4096
+loop	.2
+
+mov	eax, PAGE_DIR_BASE
+mov	cr3, eax
+mov	eax, cr0
+or	eax, 80000000h
+mov	cr0, eax
+jmp	short	.3
+.3:
+nop
+nop
+nop
+
+pop	ebx
+pop	edx
+
+ret
+
+;************************ Move kernel.bin from 080000h to the address specified by kernel.bin elf header ***************************
+MoveKernelToElfSpecified:
+xor	esi, esi
+xor	ecx, ecx
+mov	cx, word [BaseOfKernelPhysicAddr + 2Ch]		; ecx = ELFHeader->e_phnum (Program Header Number)	2Ch = 44, e_phum offset
+mov	esi, [BaseOfKernelPhysicAddr + 1Ch]		; esi = ELFHeader->e_phoff (Program Header Offset)
+add	esi, BaseOfKernelPhysicAddr
+.begin:
+mov	eax, [esi]
+cmp	eax, 0		; Check program header type
+jz	.no_action
+push	dword [esi + 10h]		; Size
+push	dword [esi + 08h]		; Destination - Segment will be copied to this address
+mov	eax, [esi + 4h]			; First byte of Segment in Kernel.bin
+add	eax, BaseOfKernelPhysicAddr 	; Source - Segment to be copied
+push	eax
+cmp	dword [esi + 08h], 050000h
+
+;---------------- We have specified 0x30400 as the program entry point, but it seems that there exists some segments locate on high address in ELF program headers ------------------------
+ja	.no_copy
+
+;----------------- MemCpy(void* src, void* dest, int copyLen) ----------------
+call	MemCpy
+
+.no_copy:
+add	esp, 12
+
+.no_action:
+add	esi, 20h		; Each program header has 0x20 bytes
+dec	ecx
+jnz	.begin
+
+ret
+
+
 %include	"include/display.inc"
+%include	"include/memory.inc"
