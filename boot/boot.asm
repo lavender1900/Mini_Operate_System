@@ -5,7 +5,7 @@ org	07c00h
 jmp	BOOT_START
 nop
 
-%include	"include/fat12header.inc"
+%include	"fat12header.inc"
 
 BOOT_START:
 mov	ax, cs
@@ -84,12 +84,7 @@ mov	dh, 1
 call	DispStrRealMode
 add	sp, 2
 
-%ifdef	_BOOT_DEBUG_
-mov	ax, 4c00h
-int	21h		; back to dos
-%else
 jmp	$
-%endif
 
 FILENAME_FOUND:
 mov	ax, RootDirSectors
@@ -131,7 +126,7 @@ FILE_LOADED:
 jmp	BaseOfFile:OffsetOfFile	
 
 ; include ReadSector, GetFatEntry functions
-%include 	"include/fat12read.inc"
+%include 	"fat12read.inc"
 
 szLoaderFileName	db	"LOADER  BIN",0
 MessageLength		equ	9

@@ -6,7 +6,7 @@ org	0100h		; Loader.bin will be loaded to ES:0100h by Boot.bin
 
 jmp	LOADER_START
 
-%include	"include/macros.inc"
+%include	"macros.inc"
 
 ;************************** Global Descriptor Table *********************************
 GDT_START:
@@ -26,7 +26,7 @@ SelectorFlatRw		equ	DESC_FLAT_RW - GDT_DUMMY
 SelectorStack		equ	DESC_STACK - GDT_DUMMY
 SelectorVideo		equ	(DESC_VIDEO - GDT_DUMMY) | SA_RPL3 
 
-%include	"include/fat12header.inc"
+%include	"fat12header.inc"
 
 LOADER_START:
 mov	ax, cs
@@ -182,7 +182,7 @@ MEM_CHK_OK:
 ret
 
 ; include ReadSector, GetFatEntry functions
-%include 	"include/fat12read.inc"
+%include 	"fat12read.inc"
 
 ;****************************** Data Area *********************************
 StackSpace:	times	1024	db	0
@@ -425,5 +425,5 @@ jnz	.begin
 ret
 
 
-%include	"include/display.inc"
-%include	"include/memory.inc"
+%include	"display.inc"
+%include	"memory.inc"
