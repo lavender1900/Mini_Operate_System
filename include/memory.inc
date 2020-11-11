@@ -5,6 +5,7 @@
 ;
 ; Copy unit is byte
 ; Function will consider DS:srcPtr points to src, ES:destPtr points to dest
+kmemcpy:
 MemCpy:
 push	ebp
 mov	ebp, esp

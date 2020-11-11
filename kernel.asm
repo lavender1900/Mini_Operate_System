@@ -1,11 +1,30 @@
+SELECTOR_KERNEL_CS	equ	8
+
+extern	cstart
+extern	gdt_ptr
+
 [section .text]
 align 32
 [bits 32]
 global	_start
+global	kmemcpy
 
 _start:
-xchg	bx, bx
-mov	ah, 0Fh
-mov	al, 'K'
-mov	[gs:((80 * 20 + 0 ) * 2)], ax
-jmp	$
+mov	esp, StackTop
+sgdt	[gdt_ptr]
+call	cstart
+lgdt	[gdt_ptr]
+
+jmp	SELECTOR_KERNEL_CS:csinit
+
+csinit:
+push	0
+popfd
+
+hlt
+
+%include	"include/memory.inc"
+
+[section .bss]
+StackSpace:	resb	2 * 1024
+StackTop:

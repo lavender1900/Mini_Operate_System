@@ -399,16 +399,16 @@ mov	esi, [BaseOfKernelPhysicAddr + 1Ch]		; esi = ELFHeader->e_phoff (Program Hea
 add	esi, BaseOfKernelPhysicAddr
 .begin:
 mov	eax, [esi]
-cmp	eax, 0		; Check program header type
-jz	.no_action
+cmp	eax, 1		; Check program header type, wierd problems - GNU Stack segment Destination is at address 0, we should skip it
+jnz	.no_action
 push	dword [esi + 10h]		; Size
 push	dword [esi + 08h]		; Destination - Segment will be copied to this address
 mov	eax, [esi + 4h]			; First byte of Segment in Kernel.bin
 add	eax, BaseOfKernelPhysicAddr 	; Source - Segment to be copied
 push	eax
-cmp	dword [esi + 08h], 050000h
 
 ;---------------- We have specified 0x30400 as the program entry point, but it seems that there exists some segments locate on high address in ELF program headers ------------------------
+cmp	dword [esi + 08h], 050000h
 ja	.no_copy
 
 ;----------------- MemCpy(void* src, void* dest, int copyLen) ----------------
