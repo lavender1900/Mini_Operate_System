@@ -69,9 +69,10 @@ push	edi
 push	esi
 mov	dword	edi, [cursor_pos]
 mov	dword	esi, [ebp + 8]
-mov	ah, [ebp + 12]
 
 xor	eax, eax
+mov	ah, [ebp + 12]
+
 cld
 .loop:
 lodsb
