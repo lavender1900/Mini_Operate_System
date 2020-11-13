@@ -12,6 +12,7 @@ PUBLIC void	 out_byte(u32 port, u32 value);
 PUBLIC u32	in_byte(u32 port);
 
 PUBLIC void	init_8259A();
+PUBLIC void	spurious_irq(int irq);
 PUBLIC void	init_prot();
 
 PUBLIC	void	divide_error();

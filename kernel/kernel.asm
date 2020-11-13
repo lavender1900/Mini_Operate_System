@@ -4,6 +4,7 @@ extern	cstart
 extern	gdt_ptr
 extern	idt_ptr
 extern	exception_handler
+extern	spurious_irq
 
 global	_start
 
@@ -24,6 +25,23 @@ global	general_protection
 global	page_fault
 global	copr_error	
 
+global	hwint00
+global	hwint01
+global	hwint02
+global	hwint03
+global	hwint04
+global	hwint05
+global	hwint06
+global	hwint07
+global	hwint08
+global	hwint09
+global	hwint10
+global	hwint11
+global	hwint12
+global	hwint13
+global	hwint14
+global	hwint15
+
 [section .text]
 align 32
 [bits 32]
@@ -38,8 +56,7 @@ jmp	SELECTOR_KERNEL_CS:csinit
 
 csinit:
 lidt	[idt_ptr]
-
-ud2
+sti
 
 hlt
 
@@ -120,9 +137,76 @@ jmp	exception
 exception:
 call	exception_handler
 add	esp, 8
+iretd
 
+hwint00:
+push	0
+jmp	hexception
+
+hwint01:
+push	1
+jmp	hexception
+
+hwint02:
+push	2
+jmp	hexception
+
+hwint03:
+push	3
+jmp	hexception
+
+hwint04:
+push	4
+jmp	hexception
+
+hwint05:
+push	5
+jmp	hexception
+
+hwint06:
+push	6
+jmp	hexception
+
+hwint07:
+push	7
+jmp	hexception
+
+hwint08:
+push	8
+jmp	hexception
+
+hwint09:
+push	9
+jmp	hexception
+
+hwint10:
+push	10
+jmp	hexception
+
+hwint11:
+push	11
+jmp	hexception
+
+hwint12:
+push	12
+jmp	hexception
+
+hwint13:
+push	13
+jmp	hexception
+
+hwint14:
+push	14
+jmp	hexception
+
+hwint15:
+push	15
+jmp	hexception
+
+hexception:
+call	spurious_irq
+add	esp, 4
 hlt
-
 
 [section .bss]
 StackSpace:	resb	2 * 1024

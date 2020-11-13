@@ -1,7 +1,7 @@
 #include	"const.h"
 #include	"protect.h"
-
-void*	out_byte(int port, int ICW);
+#include	"proto.h"
+#include	"global.h"
 
 PUBLIC void init_8259A() {
  out_byte(INT_M_CTL, 0x11); // Master ICW1
@@ -16,6 +16,13 @@ PUBLIC void init_8259A() {
  out_byte(INT_M_CTLMASK, 0x1); // Master ICW4
  out_byte(INT_S_CTLMASK, 0x1); // Slave ICW4
 
- out_byte(INT_M_CTLMASK, 0xFF); // OCW1, Mask out all interrupts of Master chip
+ out_byte(INT_M_CTLMASK, 0xFD); // OCW1, Mask out all interrupts of Master chip
  out_byte(INT_S_CTLMASK, 0xFF); // OCW1, Mask out all interrupts of Slave chip
+}
+
+PUBLIC void spurious_irq(int irq)
+{
+	disp_str("spurious_irq: ");
+	disp_int(irq);
+	disp_str("\n");
 }

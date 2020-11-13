@@ -21,6 +21,9 @@
 
 #define	SELECTOR_KERNEL_CS	0x8
 
+#define	INT_VECTOR_IRQ0		0x20
+#define	INT_VECTOR_IRQ8		0x28
+
 #define	INT_VECTOR_DIVIDE	0
 #define	INT_VECTOR_DEBUG	1
 #define	INT_VECTOR_NMI		2
