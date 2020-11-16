@@ -9,10 +9,15 @@
 void	init_descriptor(DESCRIPTOR* p, u32 base, u32 limit, u16 att);
 u32	seg2phys(u16 seg);
 void	restart();
+void	testA();
 
 PUBLIC	int kernel_main()
 {
 	disp_str("-------\"kernel_main\" begins-------\n");
+	disp_str("PROCESS_TABLE_LDT_SELECTOR_OFFSET = ");
+	disp_int(PROCESS_TABLE_LDT_SELECTOR_OFFSET);
+	disp_str("TSS_OFFSET = ");
+	disp_int(PROCESS_TABLE_TSS_SELECTOR_OFFSET);
 
 	// Start a brand new Process running on ring 3
 
@@ -34,13 +39,13 @@ PUBLIC	int kernel_main()
 			vir2phys(seg2phys(SELECTOR_KERNEL_DS), &p_proc->tss),
 			sizeof(TSS) - 1,
 			DA_TYPE_386TSS);
-	tss.iobase = sizeof(TSS);
+	p_proc->tss.iobase = sizeof(TSS);
 
 	// *************** Initialize Descriptors in LDT ******************
 	kmemcpy(&gdt[SELECTOR_KERNEL_CS >> 3], &p_proc->ldts[0], sizeof(DESCRIPTOR));
-	p_proc->ldts[0].attr1 = DA_32BIT_EXE_ONLY_CODE | (0x3 << 5);
+	p_proc->ldts[0].attr1 |= (0x3 << 5);
 	kmemcpy(&gdt[SELECTOR_KERNEL_DS >> 3], &p_proc->ldts[1], sizeof(DESCRIPTOR));
-	p_proc->ldts[1].attr1 = DA_READ_WRITE_DATA | (0x3 << 5);
+	p_proc->ldts[1].attr1 |= (0x3 << 5);
 
 	p_proc->regs.cs = (8 & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
 	p_proc->regs.ds = (0x10 & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;

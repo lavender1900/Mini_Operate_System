@@ -4,8 +4,10 @@
 #include	"proto.h"
 #include	"global.h"
 
+void	initializeGlobalParameters();
+
 PUBLIC void cstart() {
- cursor_pos = 0;
+ initializeGlobalParameters();
 
  disp_str("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n-----------\"cstart\" begins-----------\n");
 

@@ -33,7 +33,7 @@ final : all clean
 image : final buildimg
 
 clean :
-	rm -f $(OBJS) $(BOOT)
+	rm -f $(OBJS)
 
 realclean :
 	rm -f $(OBJS) $(BOOT) $(KERNEL)

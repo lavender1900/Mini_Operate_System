@@ -1,5 +1,6 @@
 SELECTOR_KERNEL_CS	equ	8
-SELECTOR_TSS		equ	0x28
+SELECTOR_TSS		equ	0x20
+SELECTOR_LDT		equ	0x28
 
 extern	cstart
 extern	gdt_ptr
@@ -60,21 +61,28 @@ mov	esp, StackRing0Top
 sgdt	[gdt_ptr]
 call	cstart
 lgdt	[gdt_ptr]
+lidt	[idt_ptr]
 
 jmp	SELECTOR_KERNEL_CS:csinit
 
 csinit:
-lidt	[idt_ptr]
+xchg	bx, bx
 sti
+jmp	0x70:0
+ud2
 
+hlt
 jmp	kernel_main
 
 restart:
-mov	esp, [proc_table]
-lldt	[esp + PROCESS_TABLE_LDT_SELECTOR_OFFSET]
+xchg	bx, bx
+mov	esp, proc_table
 xor	eax, eax
 mov	ax, SELECTOR_TSS
 ltr	ax
+xor	eax, eax
+mov	eax, [PROCESS_TABLE_LDT_SELECTOR_OFFSET]
+lldt	[esp + eax]	
 
 pop	gs
 pop	fs
@@ -161,6 +169,7 @@ push	15
 jmp	exception
 
 exception:
+xchg	bx, bx
 call	exception_handler
 add	esp, 8
 iretd

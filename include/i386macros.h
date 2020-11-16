@@ -11,7 +11,7 @@
 // Attribute Mapping
 // | G | D/B | 0 | AVL | Segment Limit 2 | P | DPL | S | Type|
 
-#define  DA_PRESENT			80h 	// Segment is present
+#define  DA_PRESENT			0x80 	// Segment is present
 
 // Descriptor Privilege Level
 #define  DA_DPL0				0  		// Descriptor Privilege is 0

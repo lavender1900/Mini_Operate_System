@@ -7,8 +7,9 @@
 
 PUBLIC 	void	initializeGlobalParameters()
 {
-	PROCESS_TABLE_LDT_SELECTOR_OFFSET = (u32)&((PROCESS*) 0)->ldt_selector;
+	cursor_pos = 0;
+	PROCESS_TABLE_LDT_SELECTOR_OFFSET = (u32) (&((PROCESS*) 0)->ldt_selector);
 	PROCESS_TABLE_ENTRY_OFFSET = sizeof(PROCESS);
-	PROCESS_TABLE_TSS_SELECTOR_OFFSET = (u32)&((PROCESS*) 0)->tss_selector;
-	PROCESS_TABLE_TSS_OFFSET = (u32)&((PROCESS*) 0)->tss;
+	PROCESS_TABLE_TSS_SELECTOR_OFFSET = (u32) (&((PROCESS*) 0)->tss_selector);
+	PROCESS_TABLE_TSS_OFFSET = (u32) (&((PROCESS*) 0)->tss);
 }

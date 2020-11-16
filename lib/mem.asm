@@ -53,7 +53,7 @@ push	ecx
 push	eax
 push	edi
 
-mov	ecx, [ebp + 13]	; loop times
+mov	ecx, [ebp + 16]	; loop times
 mov	edi, [ebp + 8]	; dest
 xor	eax, eax
 mov	al, [ebp + 12]	; value to set
