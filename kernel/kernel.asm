@@ -61,21 +61,16 @@ mov	esp, StackRing0Top
 sgdt	[gdt_ptr]
 call	cstart
 lgdt	[gdt_ptr]
-lidt	[idt_ptr]
 
 jmp	SELECTOR_KERNEL_CS:csinit
 
 csinit:
-xchg	bx, bx
+lidt	[idt_ptr]
 sti
-jmp	0x70:0
-ud2
 
-hlt
 jmp	kernel_main
 
 restart:
-xchg	bx, bx
 mov	esp, proc_table
 xor	eax, eax
 mov	ax, SELECTOR_TSS
@@ -88,6 +83,9 @@ pop	gs
 pop	fs
 pop	es
 pop	ds
+xchg	bx, bx
+lea	eax, [esp + 32]
+mov	[esp + 12], eax
 popad
 add	esp, 4
 
@@ -169,9 +167,9 @@ push	15
 jmp	exception
 
 exception:
-xchg	bx, bx
 call	exception_handler
 add	esp, 8
+hlt
 iretd
 
 ;*************** Customized 8259A interrupts ********************

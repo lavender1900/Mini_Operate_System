@@ -14,10 +14,6 @@ void	testA();
 PUBLIC	int kernel_main()
 {
 	disp_str("-------\"kernel_main\" begins-------\n");
-	disp_str("PROCESS_TABLE_LDT_SELECTOR_OFFSET = ");
-	disp_int(PROCESS_TABLE_LDT_SELECTOR_OFFSET);
-	disp_str("TSS_OFFSET = ");
-	disp_int(PROCESS_TABLE_TSS_SELECTOR_OFFSET);
 
 	// Start a brand new Process running on ring 3
 
@@ -29,7 +25,7 @@ PUBLIC	int kernel_main()
 	init_descriptor(&gdt[(SELECTOR_LDT & SA_FULL_MASK) >> 3],
 			vir2phys(seg2phys(SELECTOR_KERNEL_DS), &p_proc->ldts),
 			LDT_SIZE * sizeof(DESCRIPTOR) - 1,
-			DA_TYPE_LDT);
+			DA_LDT);
 
 	// ****************** Initialize TSS **********************
 	kmemset(&p_proc->tss, 0, sizeof(TSS));
@@ -38,7 +34,7 @@ PUBLIC	int kernel_main()
 	init_descriptor(&gdt[(SELECTOR_TSS & SA_FULL_MASK) >> 3],
 			vir2phys(seg2phys(SELECTOR_KERNEL_DS), &p_proc->tss),
 			sizeof(TSS) - 1,
-			DA_TYPE_386TSS);
+			DA_386TSS);
 	p_proc->tss.iobase = sizeof(TSS);
 
 	// *************** Initialize Descriptors in LDT ******************
