@@ -1,12 +1,21 @@
 SELECTOR_KERNEL_CS	equ	8
+SELECTOR_TSS		equ	0x28
 
 extern	cstart
 extern	gdt_ptr
 extern	idt_ptr
 extern	exception_handler
 extern	spurious_irq
+extern	kernel_main
+extern	proc_table
+extern	PROCESS_TABLE_LDT_SELECTOR_OFFSET
+extern	PROCESS_TABLE_TSS_OFFSET
 
 global	_start
+global	restart
+
+global	StackRing3Top
+global	StackRing0Top
 
 global	divide_error
 global	single_step_exception
@@ -47,7 +56,7 @@ align 32
 [bits 32]
 
 _start:
-mov	esp, StackTop
+mov	esp, StackRing0Top
 sgdt	[gdt_ptr]
 call	cstart
 lgdt	[gdt_ptr]
@@ -58,8 +67,25 @@ csinit:
 lidt	[idt_ptr]
 sti
 
-hlt
+jmp	kernel_main
 
+restart:
+mov	esp, [proc_table]
+lldt	[esp + PROCESS_TABLE_LDT_SELECTOR_OFFSET]
+xor	eax, eax
+mov	ax, SELECTOR_TSS
+ltr	ax
+
+pop	gs
+pop	fs
+pop	es
+pop	ds
+popad
+add	esp, 4
+
+iretd
+
+;************ Intel Used Interrupts *****************
 divide_error:
 push	0xFFFFFFFF
 push	0
@@ -139,6 +165,7 @@ call	exception_handler
 add	esp, 8
 iretd
 
+;*************** Customized 8259A interrupts ********************
 hwint00:
 push	0
 jmp	hexception
@@ -206,8 +233,11 @@ jmp	hexception
 hexception:
 call	spurious_irq
 add	esp, 4
-hlt
+iretd
 
 [section .bss]
-StackSpace:	resb	2 * 1024
-StackTop:
+StackRing0:	resb	2 * 1024
+StackRing0Top: 
+
+StackRing3:	resb	2 * 1024
+StackRing3Top:

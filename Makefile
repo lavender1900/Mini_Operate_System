@@ -18,7 +18,7 @@ DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 
 BOOT		= boot/boot.bin boot/loader.bin
 KERNEL		= kernel.bin
-OBJS		= kernel/kernel.o kernel/start.o kernel/global.o kernel/protect.o kernel/i8259A.o lib/kliba.o lib/klib.o lib/mem.o
+OBJS		= kernel/kernel.o kernel/start.o kernel/global.o kernel/protect.o kernel/i8259A.o kernel/main.o lib/kliba.o lib/klib.o lib/mem.o
 DASMOUTPUT	= kernel.bin.debug.asm
 
 # actions
@@ -71,6 +71,9 @@ kernel/protect.o : kernel/protect.c include/type.h include/const.h include/prote
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/i8259A.o : kernel/i8259A.c include/type.h include/const.h include/protect.h include/proto.h include/global.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/main.o : kernel/main.c include/type.h include/const.h include/protect.h include/proto.h include/global.h include/process.h include/i386macros.h	
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/klib.o : lib/klib.c include/type.h include/const.h include/protect.h include/proto.h include/global.h

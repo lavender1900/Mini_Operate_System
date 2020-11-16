@@ -3,6 +3,7 @@
 #include	"proto.h"
 #include	"global.h"
 #include	"protect.h"
+#include	"i386macros.h"
 
 void	hwint00();
 void	hwint01();
@@ -82,40 +83,58 @@ PRIVATE void init_idt_descriptor(unsigned char vector, u8 desc_type, int_handler
 	p_gate->offset_high = (base >> 16) & 0xFFFF;	
 }
 
+PUBLIC void init_descriptor(DESCRIPTOR* p_desc, u32 base, u32 limit, u16 attribute)
+{
+	p_desc->limit_low = limit & 0x0FFFF;
+	p_desc->base_low = base & 0x0FFFF;
+	p_desc->base_mid = (base >> 16) & 0x0FF;
+	p_desc->attr1 = attribute & 0xFF;
+	p_desc->limit_high_attr2 = ((limit >> 16) & 0x0F | (attribute >> 8) & 0xF0);
+	p_desc->base_high = (base >> 24) & 0x0FF;
+}
+
+PUBLIC u32 seg2phys(u16 seg)
+{
+	DESCRIPTOR* p = &gdt[seg >> 3];
+	return (p->base_high << 24 | p->base_mid << 16 | p->base_low);
+}
+
 PUBLIC void init_prot()
 {
 	init_8259A();
-	init_idt_descriptor(INT_VECTOR_DIVIDE, DA_386IGate, divide_error, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_DEBUG, DA_386IGate, single_step_exception, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_NMI, DA_386IGate, nmi, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_BREAKPOINT, DA_386IGate, breakpoint_exception, PRIVILEGE_USER);
-	init_idt_descriptor(INT_VECTOR_OVERFLOW, DA_386IGate, overflow, PRIVILEGE_USER);
-	init_idt_descriptor(INT_VECTOR_BOUNDS, DA_386IGate, bounds_check, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_INVAL_OP, DA_386IGate, inval_opcode, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_COPROC_NOT, DA_386IGate, copr_not_available, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_DOUBLE_FAULT, DA_386IGate, double_fault, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_COPROC_SEG, DA_386IGate, copr_seg_overrun, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_INVAL_TSS, DA_386IGate, inval_tss, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_SEG_NOT, DA_386IGate, segment_not_present, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_STACK_FAULT, DA_386IGate, stack_exception, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_PROTECTION, DA_386IGate, general_protection, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_PAGE_FAULT, DA_386IGate, page_fault, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_COPROC_ERR, DA_386IGate, copr_error, PRIVILEGE_KERNEL);
 
-	init_idt_descriptor(INT_VECTOR_IRQ0 + 0, DA_386IGate, hwint00, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ0 + 1, DA_386IGate, hwint01, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ0 + 2, DA_386IGate, hwint02, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ0 + 3, DA_386IGate, hwint03, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ0 + 4, DA_386IGate, hwint04, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ0 + 5, DA_386IGate, hwint05, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ0 + 6, DA_386IGate, hwint06, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ0 + 7, DA_386IGate, hwint07, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ8 + 0, DA_386IGate, hwint08, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ8 + 1, DA_386IGate, hwint09, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ8 + 2, DA_386IGate, hwint10, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ8 + 3, DA_386IGate, hwint11, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ8 + 4, DA_386IGate, hwint12, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ8 + 5, DA_386IGate, hwint13, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ8 + 6, DA_386IGate, hwint14, PRIVILEGE_KERNEL);
-	init_idt_descriptor(INT_VECTOR_IRQ8 + 7, DA_386IGate, hwint15, PRIVILEGE_KERNEL);
+	// ****************** Initilize Interrupt Descriptor Table *************************
+	init_idt_descriptor(INT_VECTOR_DIVIDE, DA_TYPE_386INT_GATE, divide_error, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_DEBUG, DA_TYPE_386INT_GATE, single_step_exception, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_NMI, DA_TYPE_386INT_GATE, nmi, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_BREAKPOINT, DA_TYPE_386INT_GATE, breakpoint_exception, PRIVILEGE_USER);
+	init_idt_descriptor(INT_VECTOR_OVERFLOW, DA_TYPE_386INT_GATE, overflow, PRIVILEGE_USER);
+	init_idt_descriptor(INT_VECTOR_BOUNDS, DA_TYPE_386INT_GATE, bounds_check, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_INVAL_OP, DA_TYPE_386INT_GATE, inval_opcode, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_COPROC_NOT, DA_TYPE_386INT_GATE, copr_not_available, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_DOUBLE_FAULT, DA_TYPE_386INT_GATE, double_fault, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_COPROC_SEG, DA_TYPE_386INT_GATE, copr_seg_overrun, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_INVAL_TSS, DA_TYPE_386INT_GATE, inval_tss, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_SEG_NOT, DA_TYPE_386INT_GATE, segment_not_present, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_STACK_FAULT, DA_TYPE_386INT_GATE, stack_exception, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_PROTECTION, DA_TYPE_386INT_GATE, general_protection, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_PAGE_FAULT, DA_TYPE_386INT_GATE, page_fault, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_COPROC_ERR, DA_TYPE_386INT_GATE, copr_error, PRIVILEGE_KERNEL);
+
+	init_idt_descriptor(INT_VECTOR_IRQ0 + 0, DA_TYPE_386INT_GATE, hwint00, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ0 + 1, DA_TYPE_386INT_GATE, hwint01, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ0 + 2, DA_TYPE_386INT_GATE, hwint02, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ0 + 3, DA_TYPE_386INT_GATE, hwint03, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ0 + 4, DA_TYPE_386INT_GATE, hwint04, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ0 + 5, DA_TYPE_386INT_GATE, hwint05, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ0 + 6, DA_TYPE_386INT_GATE, hwint06, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ0 + 7, DA_TYPE_386INT_GATE, hwint07, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ8 + 0, DA_TYPE_386INT_GATE, hwint08, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ8 + 1, DA_TYPE_386INT_GATE, hwint09, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ8 + 2, DA_TYPE_386INT_GATE, hwint10, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ8 + 3, DA_TYPE_386INT_GATE, hwint11, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ8 + 4, DA_TYPE_386INT_GATE, hwint12, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ8 + 5, DA_TYPE_386INT_GATE, hwint13, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ8 + 6, DA_TYPE_386INT_GATE, hwint14, PRIVILEGE_KERNEL);
+	init_idt_descriptor(INT_VECTOR_IRQ8 + 7, DA_TYPE_386INT_GATE, hwint15, PRIVILEGE_KERNEL);
 }

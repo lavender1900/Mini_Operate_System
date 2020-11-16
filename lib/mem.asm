@@ -5,10 +5,12 @@
 ; Function will consider DS:srcPtr points to src, ES:destPtr points to dest
 
 global	kmemcpy
+global	kmemset
 
 [section .text]
 align 32
 [bits 32]
+;***************** kmemcpy(void* src, void* dest, int copyBytes) ******************
 kmemcpy:
 push	ebp
 mov	ebp, esp
@@ -38,6 +40,30 @@ loop	.1
 pop	ebx
 pop	edi
 pop	esi
+pop	ecx
+pop	ebp
+
+ret
+
+;********************* kmemset(void* dest, u8 t, int times) ********************
+kmemset:
+push	ebp
+mov	ebp, esp
+push	ecx
+push	eax
+push	edi
+
+mov	ecx, [ebp + 13]	; loop times
+mov	edi, [ebp + 8]	; dest
+xor	eax, eax
+mov	al, [ebp + 12]	; value to set
+
+.1:
+stosb
+loop	.1
+
+pop	edi
+pop	eax
 pop	ecx
 pop	ebp
 

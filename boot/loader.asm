@@ -14,7 +14,6 @@ GDT_START:
 GDT_DUMMY:		Descriptor	0,		0,		0
 DESC_FLAT_C:		Descriptor	0,		0fffffh,	DA_32BIT_EXE_ONLY_CODE | DA_GRAN_4KB
 DESC_FLAT_RW:		Descriptor	0,		0fffffh,	DA_READ_WRITE_DATA | DA_GRAN_4KB 
-DESC_STACK:		Descriptor	0,		0fffffh,	DA_32BIT_READ_WRITE_STACK | DA_GRAN_4KB
 DESC_VIDEO:		Descriptor	0B8000h,	0ffffh,		DA_READ_WRITE_DATA | DA_DPL3
 
 GDTLen		equ		$ - GDT_START
@@ -23,7 +22,7 @@ GDTPtr		dw		GDTLen - 1				; GDT Limit
 
 SelectorFlatC		equ	DESC_FLAT_C - GDT_DUMMY
 SelectorFlatRw		equ	DESC_FLAT_RW - GDT_DUMMY
-SelectorStack		equ	DESC_STACK - GDT_DUMMY
+SelectorStack		equ	DESC_FLAT_RW - GDT_DUMMY
 SelectorVideo		equ	(DESC_VIDEO - GDT_DUMMY) | SA_RPL3 
 
 %include	"fat12header.inc"

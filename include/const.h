@@ -6,6 +6,9 @@
 
 #define	GDT_SIZE	128
 #define	IDT_SIZE	256
+#define	LDT_SIZE	3
+
+#define	NR_TASKS	1
 
 #define	EXTERN	extern
 
@@ -14,12 +17,8 @@
 #define	INT_S_CTL	0xA0 // Write to this port enable initialize 8259A slave chip
 #define	INT_S_CTLMASK	0xA1 // Write to this port enable control interrupt response of slave chip
 
-#define	DA_386IGate	0x8E
-
 #define	PRIVILEGE_KERNEL	0
 #define	PRIVILEGE_USER		3
-
-#define	SELECTOR_KERNEL_CS	0x8
 
 #define	INT_VECTOR_IRQ0		0x20
 #define	INT_VECTOR_IRQ8		0x28
