@@ -4,6 +4,7 @@
 #include	"const.h"
 #include	"protect.h"
 #include	"global.h"
+#include	"proto.h"
 
 PUBLIC 	void	initializeGlobalParameters()
 {

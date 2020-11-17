@@ -10,7 +10,6 @@ extern	spurious_irq
 extern	kernel_main
 extern	proc_table
 extern	PROCESS_TABLE_LDT_SELECTOR_OFFSET
-extern	PROCESS_TABLE_TSS_OFFSET
 
 global	_start
 global	restart
@@ -239,6 +238,7 @@ jmp	hexception
 hexception:
 call	spurious_irq
 add	esp, 4
+hlt
 iretd
 
 [section .bss]

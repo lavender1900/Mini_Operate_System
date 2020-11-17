@@ -9,14 +9,15 @@
 void	init_descriptor(DESCRIPTOR* p, u32 base, u32 limit, u16 att);
 u32	seg2phys(u16 seg);
 void	restart();
+void	donothing();
 
 PUBLIC	void	testA()
 {
 	int i = 0;
 	while(1) {
-		disp_str("A");
-		disp_int(i++);
-		disp_str(".");
+//		disp_str("A");
+//		disp_int(i++);
+//		disp_str(".");
 		delay(1);
 	}
 }
@@ -40,7 +41,7 @@ PUBLIC	int kernel_main()
 	// ****************** Initialize TSS **********************
 	kmemset(&p_proc->tss, 0, sizeof(TSS));
 	p_proc->tss.ss0 = SELECTOR_KERNEL_DS;
-	p_proc->tss.esp0 = StackRing0Top;
+	p_proc->tss.esp0 = &StackRing0Top;
 	init_descriptor(&gdt[(SELECTOR_TSS & SA_FULL_MASK) >> 3],
 			vir2phys(seg2phys(SELECTOR_KERNEL_DS), &p_proc->tss),
 			sizeof(TSS) - 1,
@@ -61,7 +62,7 @@ PUBLIC	int kernel_main()
 	p_proc->regs.gs = SELECTOR_VIDEO | SA_RPL3;
 	p_proc->regs.eip = (u32) testA;
 	p_proc->regs.esp = (u32) &StackRing3Top;
-	p_proc->regs.eflags = 0x3202;
+	p_proc->regs.eflags = 0x3246;
 	
 	restart();
 }

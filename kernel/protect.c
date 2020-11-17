@@ -104,6 +104,7 @@ PUBLIC void init_prot()
 	init_8259A();
 
 	// ****************** Initilize Interrupt Descriptor Table *************************
+
 	init_idt_descriptor(INT_VECTOR_DIVIDE, DA_386INT_GATE, divide_error, PRIVILEGE_KERNEL);
 	init_idt_descriptor(INT_VECTOR_DEBUG, DA_386INT_GATE, single_step_exception, PRIVILEGE_KERNEL);
 	init_idt_descriptor(INT_VECTOR_NMI, DA_386INT_GATE, nmi, PRIVILEGE_KERNEL);
