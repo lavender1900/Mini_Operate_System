@@ -83,7 +83,6 @@ pop	gs
 pop	fs
 pop	es
 pop	ds
-xchg	bx, bx
 lea	eax, [esp + 32]
 mov	[esp + 12], eax
 popad
