@@ -9,7 +9,18 @@
 void	init_descriptor(DESCRIPTOR* p, u32 base, u32 limit, u16 att);
 u32	seg2phys(u16 seg);
 void	restart();
-void	testA();
+
+PUBLIC	void	testA()
+{
+	cursor_pos = 0;
+	int i = 0;
+	while(1) {
+//		disp_str("A");
+//		disp_int(i++);
+//		disp_str(".");
+		delay(1);
+	}
+}
 
 PUBLIC	int kernel_main()
 {
@@ -48,21 +59,17 @@ PUBLIC	int kernel_main()
 	p_proc->regs.es = (0x10 & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
 	p_proc->regs.fs = (0x10 & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
 	p_proc->regs.ss = (0x10 & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
-	p_proc->regs.gs = (0x10 & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
+	p_proc->regs.gs = SELECTOR_VIDEO | SA_RPL3;
 	p_proc->regs.eip = (u32) testA;
-	p_proc->regs.esp = (u32) StackRing3Top;
+	p_proc->regs.esp = (u32) &StackRing3Top;
 	p_proc->regs.eflags = 0x1202;
+	
+	disp_str("proc_table[0] regs.eip =");
+	disp_int(p_proc->regs.eip);
+	disp_str("proc_table[0] regs.esp =");
+	disp_int(p_proc->regs.esp);
 
+
+	testA();
 	restart();
-}
-
-void	testA()
-{
-	int i = 0;
-	while(1) {
-		disp_str("A");
-		disp_int(i++);
-		disp_str(".");
-		delay(1);
-	}
 }
