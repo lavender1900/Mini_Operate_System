@@ -8,8 +8,7 @@ extern	spurious_irq
 extern	kernel_main
 extern	p_current_process
 extern	PROCESS_TABLE_LDT_SELECTOR_OFFSET
-extern	PROCESS_TABLE_TSS_SELECTOR_OFFSET
-extern	PROCESS_TABLE_RESTORE_TSS_OFFSET
+extern	p_shared_tss
 extern	disp_str
 extern	k_reenter
 extern	clock_handler
@@ -76,26 +75,20 @@ sti
 jmp	kernel_main
 
 restart:
-mov	esp, [p_current_process] 
+xor	eax, eax
+mov	eax, SELECTOR_TSS
+ltr	ax
 
+mov	esp, [p_current_process] 
 
 xor	eax, eax
 mov	eax, [PROCESS_TABLE_LDT_SELECTOR_OFFSET] 
 lldt	[esp + eax]
 
-xchg	bx, bx
-
-;mov	eax, [PROCESS_TABLE_TSS_SELECTOR_OFFSET]
-;ltr	[esp + eax]
-
-mov	eax, [PROCESS_TABLE_RESTORE_TSS_OFFSET]	
-add	eax, esp
-push	esp
-call	[eax]
-add	esp, 4
-
-mov	eax, [PROCESS_TABLE_TSS_SELECTOR_OFFSET]
-ltr	[esp + eax]
+; Update ESP0 in TSS
+mov	eax, [p_shared_tss]
+lea	ebx, [esp + P_STACKTOP] 
+mov	[eax + 4], ebx 
 
 pop	gs
 pop	fs
@@ -214,8 +207,6 @@ mov	esp, StackRing0Top
 
 sti
 
-xchg	bx, bx
-
 push	0
 call	clock_handler
 add	esp, 4
@@ -224,18 +215,13 @@ cli
 
 mov	esp, [p_current_process]
 
-; Restore Busy TSS to Available TSS
-;mov	eax, [PROCESS_TABLE_RESTORE_TSS_OFFSET]	
-;add	eax, esp
-;push	esp
-;call	[eax]
-;add	esp, 4
+mov	eax, [PROCESS_TABLE_LDT_SELECTOR_OFFSET]
+lldt	[esp + eax]
 
-;mov	eax, [PROCESS_TABLE_LDT_SELECTOR_OFFSET]
-;lldt	[esp + eax]
-
-;mov	eax, [PROCESS_TABLE_TSS_SELECTOR_OFFSET]
-;ltr	[esp + eax]
+; Update ESP0 in TSS
+mov	eax, [p_shared_tss]
+lea	ebx, [esp + P_STACKTOP] 
+mov	[eax + 4], ebx 
 
 .re_enter:
 dec	dword [k_reenter]
