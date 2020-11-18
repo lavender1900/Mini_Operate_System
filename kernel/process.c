@@ -4,8 +4,6 @@
 #include	"proto.h"
 #include	"process.h"
 
-void	incinc();
-
 PUBLIC	void	TestA()
 {
 	int i = 0;
@@ -24,6 +22,16 @@ PUBLIC	void	TestB()
 		disp_str("B");
 		disp_int(i++);
 		disp_str(".");
+		delay(1);
+	}
+}
+
+PUBLIC	void	TestC()
+{
+	int i = 87;
+	while(1) {
+		disp_str("C");
+		disp_int(i++);
 		delay(1);
 	}
 }

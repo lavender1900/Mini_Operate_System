@@ -8,7 +8,6 @@ global	disp_color_str
 global	out_byte
 global	in_byte
 global	donothing
-global	incinc
 
 ;*******************  Display String which ended in '0', String offset passed by stack ***********************
 disp_str:
@@ -157,8 +156,4 @@ ret
 
 donothing:
 xchg	bx, bx
-ret
-
-incinc:
-inc	byte [gs:1600]
 ret

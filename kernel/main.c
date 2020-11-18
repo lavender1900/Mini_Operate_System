@@ -8,8 +8,9 @@
 
 void	init_descriptor(DESCRIPTOR* p, u32 base, u32 limit, u16 att);
 u32	seg2phys(u16 seg);
-void	restart();
+void	process_start();
 void	donothing();
+PRIVATE void	restore_tss_func(DESCRIPTOR* p);
 
 PUBLIC	int kernel_main()
 {
@@ -47,6 +48,8 @@ PUBLIC	int kernel_main()
 			DA_386TSS);
 		p_shared_tss->iobase = sizeof(TSS);
 
+		restore_tss_func(&gdt[SELECTOR_TSS >> 3]);
+
 		p_proc->regs.cs = (SELECTOR_KERNEL_CS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
 		p_proc->regs.ds = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
 		p_proc->regs.es = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
@@ -63,5 +66,10 @@ PUBLIC	int kernel_main()
 		selector_ldt += 8;
 	}
 	
-	restart();
+	process_start();
+}
+
+PRIVATE void restore_tss_func(DESCRIPTOR* p_desc)
+{
+	p_desc->attr1 = DA_386TSS;
 }

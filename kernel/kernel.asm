@@ -12,9 +12,10 @@ extern	p_shared_tss
 extern	disp_str
 extern	k_reenter
 extern	clock_handler
+extern	irq_table
 
 global	_start
-global	restart
+global	process_start
 
 global	StackRing3Top
 global	StackRing0Top
@@ -53,6 +54,52 @@ global	hwint13
 global	hwint14
 global	hwint15
 
+%macro	hwint_master 1
+call	save
+
+in	al, INT_M_CTLMASK
+or	al, (1 << %1) 
+out	INT_M_CTLMASK, al
+
+mov	al, EOI
+out	INT_M_CTL, al
+
+sti
+push	%1	
+call	[irq_table + 4 * %1]	
+add	esp, 4
+cli
+
+in	al, INT_M_CTLMASK
+and	al, ~(1 << %1) 
+out	INT_M_CTLMASK, al
+
+ret
+%endmacro
+
+%macro	hwint_slave 1
+call	save
+
+in	al, INT_S_CTLMASK
+or	al, (1 << %1) 
+out	INT_S_CTLMASK, al
+
+mov	al, EOI
+out	INT_S_CTL, al
+
+sti
+push	%1	
+call	[irq_table + 4 * %1]	
+add	esp, 4
+cli
+
+in	al, INT_S_CTLMASK
+and	al, ~(1 << %1) 
+out	INT_S_CTLMASK, al
+
+ret
+%endmacro
+
 [section .data]
 clock_interrupt_message		db	'^',0
 
@@ -74,11 +121,13 @@ sti
 
 jmp	kernel_main
 
-restart:
+
+process_start:
 xor	eax, eax
 mov	eax, SELECTOR_TSS
 ltr	ax
 
+restart:
 mov	esp, [p_current_process] 
 
 xor	eax, eax
@@ -90,6 +139,9 @@ mov	eax, [p_shared_tss]
 lea	ebx, [esp + P_STACKTOP] 
 mov	[eax + 4], ebx 
 
+; Interrupt re-enter happens, no need to load ldt or update esp0
+fast_restart:
+
 pop	gs
 pop	fs
 pop	es
@@ -98,6 +150,8 @@ lea	eax, [esp + 32]
 mov	[esp + 12], eax
 popad
 add	esp, 4
+
+dec	dword [k_reenter]
 
 iretd
 
@@ -184,56 +238,7 @@ iretd
 
 ;*************** Customized 8259A interrupts ********************
 hwint00:
-sub	esp, 4
-pushad
-push	ds
-push	es
-push	fs
-push	gs
-mov	dx, ss
-mov	ds, dx
-mov	es, dx
-
-inc	byte [gs:0]
-
-mov	al, EOI
-out	INT_M_CTL, al
-
-inc	dword [k_reenter]
-cmp	dword [k_reenter], 0
-jne	.re_enter
-
-mov	esp, StackRing0Top
-
-sti
-
-push	0
-call	clock_handler
-add	esp, 4
-
-cli
-
-mov	esp, [p_current_process]
-
-mov	eax, [PROCESS_TABLE_LDT_SELECTOR_OFFSET]
-lldt	[esp + eax]
-
-; Update ESP0 in TSS
-mov	eax, [p_shared_tss]
-lea	ebx, [esp + P_STACKTOP] 
-mov	[eax + 4], ebx 
-
-.re_enter:
-dec	dword [k_reenter]
-
-pop	gs
-pop	fs
-pop	es
-pop	ds
-popad
-add	esp, 4
-
-iret
+	hwint_master	0
 
 hwint01:
 push	1
@@ -301,9 +306,32 @@ add	esp, 4
 hlt
 iretd
 
+save:
+pushad
+push	ds
+push	es
+push	fs
+push	gs
+mov	dx, ss
+mov	ds, dx
+mov	es, dx
+mov	eax, esp
+
+inc	dword [k_reenter]
+cmp	dword [k_reenter], 0
+; interrupts re-enter happens
+jne	.reenter
+
+mov	esp, StackRing0Top
+push	restart
+lea	eax, [eax + RETADR - P_STACKBASE]
+jmp	[eax]
+
+.reenter:
+push	fast_restart
+lea	eax, [eax + RETADR - P_STACKBASE]
+jmp	[eax]
+
 [section .bss]
 StackRing0:	resb	2 * 1024
 StackRing0Top: 
-
-StackRing3:	resb	2 * 1024
-StackRing3Top:

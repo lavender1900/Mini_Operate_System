@@ -1,4 +1,5 @@
 #include	"const.h"
+#include	"type.h"
 #include	"protect.h"
 #include	"proto.h"
 #include	"global.h"
@@ -18,6 +19,11 @@ PUBLIC void init_8259A() {
 
  out_byte(INT_M_CTLMASK, 0xFE); // OCW1, Mask out all interrupts of Master chip
  out_byte(INT_S_CTLMASK, 0xFF); // OCW1, Mask out all interrupts of Slave chip
+
+ for (int i = 0; i < NR_IRQS; i++)
+	irq_table[i] = spurious_irq;
+
+ irq_table[0] = clock_handler;
 }
 
 PUBLIC void spurious_irq(int irq)
