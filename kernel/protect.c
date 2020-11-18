@@ -21,6 +21,7 @@ void	hwint12();
 void	hwint13();
 void	hwint14();
 void	hwint15();
+void	sys_call();
 
 PUBLIC void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
 {
@@ -138,4 +139,6 @@ PUBLIC void init_prot()
 	init_idt_descriptor(INT_VECTOR_IRQ8 + 5, DA_386INT_GATE, hwint13, PRIVILEGE_KERNEL);
 	init_idt_descriptor(INT_VECTOR_IRQ8 + 6, DA_386INT_GATE, hwint14, PRIVILEGE_KERNEL);
 	init_idt_descriptor(INT_VECTOR_IRQ8 + 7, DA_386INT_GATE, hwint15, PRIVILEGE_KERNEL);
+
+	init_idt_descriptor(INT_VECTOR_SYS_CALL, DA_386INT_GATE, sys_call, PRIVILEGE_USER);
 }

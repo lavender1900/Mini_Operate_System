@@ -15,15 +15,23 @@ PRIVATE void	restore_tss_func(DESCRIPTOR* p);
 PUBLIC	int kernel_main()
 {
 	disp_str("-------\"kernel_main\" begins-------\n");
+	
+	// Change the frequency of time interrupt to 100HZ
+	out_byte(TIMER_MODE, RATE_GENERATOR);
+	out_byte(TIMER0, (u8) (TIMER_FREQ / TIME_INT_FREQ));
+	out_byte(TIMER0, (u8) ((TIMER_FREQ / TIME_INT_FREQ) >> 8));
 
 	TASK*		p_task = 	task_table;
 	PROCESS*	p_proc =	proc_table;
 	u16		selector_ldt = 	SELECTOR_LDT;
+	
+	int priority = 200;
 
 	for (int i = 0; i < NR_TASKS; i++)
 	{
 		p_proc->pid = i;
 		p_proc->ldt_selector = selector_ldt;
+		p_proc->priority = p_proc->ticks = priority;
 
 		// *************** Initialize Descriptors in LDT ******************
 		kmemcpy(&gdt[SELECTOR_KERNEL_CS >> 3], &p_proc->ldts[1], sizeof(DESCRIPTOR));
@@ -63,6 +71,7 @@ PUBLIC	int kernel_main()
 
 		p_proc++;
 		p_task++;
+		priority += 100;
 		selector_ldt += 8;
 	}
 	

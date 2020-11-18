@@ -38,6 +38,9 @@ typedef	struct	s_proc
 	STACK_FRAME regs;
 	u16	ldt_selector;
 	DESCRIPTOR	ldts[LDT_SIZE];
+
+	int	ticks;
+	int	priority;
 	u32	pid;
 	char	p_name[16];
 	char	stack[STACK_SIZE];

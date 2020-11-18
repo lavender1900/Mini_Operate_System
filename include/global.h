@@ -23,5 +23,6 @@ EXTERN u32		k_reenter;
 EXTERN TASK		task_table[];
 EXTERN TSS*		p_shared_tss;
 EXTERN irq_handler	irq_table[];
+EXTERN int		ticks;
 
 #endif

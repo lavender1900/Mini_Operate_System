@@ -6,15 +6,21 @@
 
 PUBLIC	void	clock_handler(int irq)
 {
-	disp_str("#");
+	ticks++;
+	p_current_process->ticks--;
 	
 	if (k_reenter != 0)
 	{
-		disp_str("!!");
 		return;
 	}
 
-	p_current_process++;
-	if (p_current_process >= proc_table + NR_TASKS)
-		p_current_process = proc_table;
+	schedule();
 }
+
+PUBLIC	void	milli_delay(int milli_sec)
+{
+	int  t = get_ticks();
+	
+	while(((get_ticks() - t) * 1000 / TIME_INT_FREQ) < milli_sec)
+		;
+} 

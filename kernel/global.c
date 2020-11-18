@@ -10,10 +10,12 @@ PUBLIC	TASK	task_table[NR_TASKS] = {{TestA, STACK_SIZE, "Process A"}, {TestB, ST
 					{TestC, STACK_SIZE, "Process C"}};
 PUBLIC	TSS	shared_tss;
 PUBLIC	irq_handler	irq_table[NR_IRQS];
+PUBLIC	system_call	sys_call_table[NR_SYS_CALL] = {sys_get_ticks};
 
 PUBLIC 	void	initializeGlobalParameters()
 {
 	cursor_pos = 0;
+	ticks = 0;
 	k_reenter = 0;
 	p_shared_tss = &shared_tss;
 	p_current_process = &proc_table[0];

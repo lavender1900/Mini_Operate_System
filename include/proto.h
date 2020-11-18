@@ -16,6 +16,12 @@ PUBLIC void	TestA();
 PUBLIC void	TestB();
 PUBLIC void	TestC();
 
+PUBLIC int	sys_get_ticks();
+PUBLIC void	sys_call();
+PUBLIC int	get_ticks();
+PUBLIC void	milli_delay(int milli);
+PUBLIC void	schedule();
+
 PUBLIC void	clock_handler(int irq);
 PUBLIC void	init_8259A();
 PUBLIC void	spurious_irq(int irq);

@@ -13,6 +13,7 @@ extern	disp_str
 extern	k_reenter
 extern	clock_handler
 extern	irq_table
+extern	sys_call_table
 
 global	_start
 global	process_start
@@ -53,6 +54,8 @@ global	hwint12
 global	hwint13
 global	hwint14
 global	hwint15
+
+global	sys_call
 
 %macro	hwint_master 1
 call	save
@@ -306,6 +309,7 @@ add	esp, 4
 hlt
 iretd
 
+;*********************** Interrupt procedure common code *************************
 save:
 pushad
 push	ds
@@ -315,7 +319,7 @@ push	gs
 mov	dx, ss
 mov	ds, dx
 mov	es, dx
-mov	eax, esp
+mov	esi, esp
 
 inc	dword [k_reenter]
 cmp	dword [k_reenter], 0
@@ -324,13 +328,23 @@ jne	.reenter
 
 mov	esp, StackRing0Top
 push	restart
-lea	eax, [eax + RETADR - P_STACKBASE]
-jmp	[eax]
+jmp	[esi + RETADR - P_STACKBASE]
 
 .reenter:
 push	fast_restart
-lea	eax, [eax + RETADR - P_STACKBASE]
-jmp	[eax]
+jmp	[esi + RETADR - P_STACKBASE]
+
+;********************* System Call ***********************
+sys_call:
+call	save
+sti
+
+call	[sys_call_table + eax * 4]
+mov	[esi + EAXREG - P_STACKBASE], eax
+
+cli
+
+ret
 
 [section .bss]
 StackRing0:	resb	2 * 1024

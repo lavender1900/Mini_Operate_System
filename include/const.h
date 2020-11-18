@@ -10,6 +10,7 @@
 
 #define	NR_TASKS	3
 #define	NR_IRQS		16
+#define	NR_SYS_CALL	1
 
 #define	EXTERN	extern
 
@@ -40,5 +41,13 @@
 #define	INT_VECTOR_PROTECTION	13
 #define	INT_VECTOR_PAGE_FAULT	14
 #define	INT_VECTOR_COPROC_ERR	15
+
+#define	INT_VECTOR_SYS_CALL	0x70
+
+#define	TIMER_MODE		0x43
+#define	TIMER0			0x40
+#define	RATE_GENERATOR		0x34
+#define	TIMER_FREQ		1193180
+#define	TIME_INT_FREQ		100
 
 #endif
