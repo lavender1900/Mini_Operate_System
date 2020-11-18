@@ -8,7 +8,7 @@
 #define	IDT_SIZE	256
 #define	LDT_SIZE	3
 
-#define	NR_TASKS	1
+#define	NR_TASKS	2
 
 #define	EXTERN	extern
 

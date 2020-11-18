@@ -12,7 +12,10 @@ PUBLIC char*	itoa(char* str, int num);
 PUBLIC void	 out_byte(u32 port, u32 value); 
 PUBLIC u32	in_byte(u32 port);
 PUBLIC void	delay(int time);
+PUBLIC void	TestA();
+PUBLIC void	TestB();
 
+PUBLIC void	clock_handler(int irq);
 PUBLIC void	init_8259A();
 PUBLIC void	spurious_irq(int irq);
 PUBLIC void	init_prot();

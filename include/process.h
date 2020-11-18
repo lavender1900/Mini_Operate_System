@@ -7,6 +7,10 @@
 EXTERN	int	StackRing0Top;
 EXTERN	int	StackRing3Top;
 
+#define	STACK_SIZE	0x4000
+
+typedef	void	(* task_func) ();
+
 typedef	struct	s_stackframe
 {
 	u32	gs;
@@ -34,11 +38,17 @@ typedef	struct	s_proc
 	STACK_FRAME regs;
 	u16	ldt_selector;
 	DESCRIPTOR	ldts[LDT_SIZE];
-	u16	tss_selector;
-	TSS	tss;
 	u32	pid;
 	char	p_name[16];
+	char	stack[STACK_SIZE];
 } PROCESS;
+
+typedef	struct	s_task
+{
+	task_func	initial_eip;
+	int		stack_size;
+	char		name[32];
+} TASK;	
 
 
 #endif

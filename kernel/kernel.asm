@@ -1,6 +1,4 @@
-SELECTOR_KERNEL_CS	equ	8
-SELECTOR_TSS		equ	0x20
-SELECTOR_LDT		equ	0x28
+%include	"kconst.inc"
 
 extern	cstart
 extern	gdt_ptr
@@ -8,8 +6,13 @@ extern	idt_ptr
 extern	exception_handler
 extern	spurious_irq
 extern	kernel_main
-extern	proc_table
+extern	p_current_process
 extern	PROCESS_TABLE_LDT_SELECTOR_OFFSET
+extern	PROCESS_TABLE_TSS_SELECTOR_OFFSET
+extern	PROCESS_TABLE_RESTORE_TSS_OFFSET
+extern	disp_str
+extern	k_reenter
+extern	clock_handler
 
 global	_start
 global	restart
@@ -51,6 +54,9 @@ global	hwint13
 global	hwint14
 global	hwint15
 
+[section .data]
+clock_interrupt_message		db	'^',0
+
 [section .text]
 align 32
 [bits 32]
@@ -70,13 +76,26 @@ sti
 jmp	kernel_main
 
 restart:
-mov	esp, proc_table
+mov	esp, [p_current_process] 
+
+
 xor	eax, eax
-mov	ax, SELECTOR_TSS
-ltr	ax
-xor	eax, eax
-mov	eax, [PROCESS_TABLE_LDT_SELECTOR_OFFSET]
-lldt	[esp + eax]	
+mov	eax, [PROCESS_TABLE_LDT_SELECTOR_OFFSET] 
+lldt	[esp + eax]
+
+xchg	bx, bx
+
+;mov	eax, [PROCESS_TABLE_TSS_SELECTOR_OFFSET]
+;ltr	[esp + eax]
+
+mov	eax, [PROCESS_TABLE_RESTORE_TSS_OFFSET]	
+add	eax, esp
+push	esp
+call	[eax]
+add	esp, 4
+
+mov	eax, [PROCESS_TABLE_TSS_SELECTOR_OFFSET]
+ltr	[esp + eax]
 
 pop	gs
 pop	fs
@@ -172,8 +191,63 @@ iretd
 
 ;*************** Customized 8259A interrupts ********************
 hwint00:
+sub	esp, 4
+pushad
+push	ds
+push	es
+push	fs
+push	gs
+mov	dx, ss
+mov	ds, dx
+mov	es, dx
+
+inc	byte [gs:0]
+
+mov	al, EOI
+out	INT_M_CTL, al
+
+inc	dword [k_reenter]
+cmp	dword [k_reenter], 0
+jne	.re_enter
+
+mov	esp, StackRing0Top
+
+sti
+
+xchg	bx, bx
+
 push	0
-jmp	hexception
+call	clock_handler
+add	esp, 4
+
+cli
+
+mov	esp, [p_current_process]
+
+; Restore Busy TSS to Available TSS
+;mov	eax, [PROCESS_TABLE_RESTORE_TSS_OFFSET]	
+;add	eax, esp
+;push	esp
+;call	[eax]
+;add	esp, 4
+
+;mov	eax, [PROCESS_TABLE_LDT_SELECTOR_OFFSET]
+;lldt	[esp + eax]
+
+;mov	eax, [PROCESS_TABLE_TSS_SELECTOR_OFFSET]
+;ltr	[esp + eax]
+
+.re_enter:
+dec	dword [k_reenter]
+
+pop	gs
+pop	fs
+pop	es
+pop	ds
+popad
+add	esp, 4
+
+iret
 
 hwint01:
 push	1

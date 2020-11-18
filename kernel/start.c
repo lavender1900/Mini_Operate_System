@@ -9,7 +9,9 @@ void	initializeGlobalParameters();
 PUBLIC void cstart() {
  initializeGlobalParameters();
 
- disp_str("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n-----------\"cstart\" begins-----------\n");
+ disp_str("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n-----------\"cstart\" begins-----------\n");
+disp_str("Cursor pos At ");
+disp_int((u32) &cursor_pos);
 
  kmemcpy((void*) (*((u32*) (&gdt_ptr[2]))), &gdt,
 	*((u16*) (&gdt_ptr[0])) + 1
