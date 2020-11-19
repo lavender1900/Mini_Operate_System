@@ -1,4 +1,5 @@
 #include	"type.h"
+#include	"console.h"
 
 #ifndef _LAVENDER_PROTO_H_
 #define	_LAVENDER_PROTO_H_
@@ -12,6 +13,8 @@ PUBLIC char*	itoa(char* str, int num);
 PUBLIC void	 out_byte(u32 port, u32 value); 
 PUBLIC u32	in_byte(u32 port);
 PUBLIC void	delay(int time);
+PUBLIC void	disable_int();
+PUBLIC void	enable_int();
 PUBLIC void	TestA();
 PUBLIC void	TestB();
 PUBLIC void	TestC();
@@ -24,6 +27,11 @@ PUBLIC void	schedule();
 PUBLIC void	init_keyboard();
 PUBLIC void	init_clock();
 PUBLIC void	add_irq_handler(int irq, irq_handler handler);
+
+PUBLIC void	keyboard_read();
+PUBLIC void	in_process();
+PUBLIC void	task_tty();
+PUBLIC int	is_current_console(CONSOLE* p_console);
 
 PUBLIC void	clock_handler(int irq);
 PUBLIC void	init_8259A();

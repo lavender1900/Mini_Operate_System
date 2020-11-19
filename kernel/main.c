@@ -28,20 +28,32 @@ PUBLIC	int kernel_main()
 	TASK*		p_task = 	task_table;
 	PROCESS*	p_proc =	proc_table;
 	u16		selector_ldt = 	SELECTOR_LDT;
+
+	u8		dpl = DA_DPL3;
+	u16		cs = (SELECTOR_KERNEL_CS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
+	u16		ss = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
 	
 	int priority = 200;
 
 	for (int i = 0; i < NR_TASKS; i++)
 	{
+
+		if (i == NR_TASKS - 1)
+		{
+			dpl = DA_DPL1;
+			cs = (SELECTOR_KERNEL_CS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL1;	
+			ss = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL1;
+		}
+
 		p_proc->pid = i;
 		p_proc->ldt_selector = selector_ldt;
 		p_proc->priority = p_proc->ticks = priority;
 
 		// *************** Initialize Descriptors in LDT ******************
 		kmemcpy(&gdt[SELECTOR_KERNEL_CS >> 3], &p_proc->ldts[1], sizeof(DESCRIPTOR));
-		p_proc->ldts[1].attr1 |= DA_DPL3;
+		p_proc->ldts[1].attr1 |= dpl;
 		kmemcpy(&gdt[SELECTOR_KERNEL_DS >> 3], &p_proc->ldts[2], sizeof(DESCRIPTOR));
-		p_proc->ldts[2].attr1 |= DA_DPL3; 
+		p_proc->ldts[2].attr1 |= dpl; 
 		
 		// ************** Initialize LDT Descritpor in GDT ******************
 		init_descriptor(&gdt[(selector_ldt & SA_FULL_MASK) >> 3],
@@ -62,11 +74,11 @@ PUBLIC	int kernel_main()
 
 		restore_tss_func(&gdt[SELECTOR_TSS >> 3]);
 
-		p_proc->regs.cs = (SELECTOR_KERNEL_CS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
-		p_proc->regs.ds = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
-		p_proc->regs.es = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
-		p_proc->regs.fs = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
-		p_proc->regs.ss = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
+		p_proc->regs.cs = cs;
+		p_proc->regs.ds = ss; 
+		p_proc->regs.es = ss; 
+		p_proc->regs.fs = ss; 
+		p_proc->regs.ss = ss; 
 		p_proc->regs.gs = SELECTOR_VIDEO | SA_RPL3;
 		p_proc->regs.eip = (u32) p_task->initial_eip;
 		p_proc->regs.esp = ((u32) &p_proc->stack) + STACK_SIZE;

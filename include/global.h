@@ -2,6 +2,8 @@
 #include	"process.h"
 #include	"const.h"
 #include	"type.h"
+#include	"console.h"
+#include	"tty.h"
 
 #ifndef	_LAVENDER_GLOBAL_H_
 #define	_LAVENDER_GLOBAL_H_ 
@@ -24,5 +26,8 @@ EXTERN TASK		task_table[];
 EXTERN TSS*		p_shared_tss;
 EXTERN irq_handler	irq_table[];
 EXTERN int		ticks;
+EXTERN TTY		tty_table[];
+EXTERN CONSOLE		console_table[];	
+EXTERN int		current_console;
 
 #endif

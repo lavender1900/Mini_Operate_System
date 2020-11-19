@@ -8,8 +8,9 @@
 #define	IDT_SIZE	256
 #define	LDT_SIZE	3
 
-#define	NR_TASKS	3
+#define	NR_TASKS	4
 #define	NR_IRQS		16
+#define	NR_CONSOLES	3
 #define	NR_SYS_CALL	1
 
 #define	EXTERN	extern
@@ -52,5 +53,15 @@
 #define	RATE_GENERATOR		0x34
 #define	TIMER_FREQ		1193180
 #define	TIME_INT_FREQ		100
+
+#define	CRTC_ADDR_REG		0x3D4
+#define	CRTC_DATA_REG		0x3D5
+#define	START_ADDR_H		0xC
+#define	START_ADDR_L		0xD
+#define	CURSOR_H		0xE
+#define	CURSOR_L		0xF
+#define	V_MEM_BASE		0xB8000
+#define	V_MEM_SIZE		0x8000
+#define	DEFAULT_CHAR_COLOR	0x0F
 
 #endif

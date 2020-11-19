@@ -10,6 +10,8 @@ global	out_byte
 global	in_byte
 global	enable_irq
 global	disable_irq
+global	disable_int
+global	enable_int
 global	donothing
 
 ;*******************  Display String which ended in '0', String offset passed by stack ***********************
@@ -206,6 +208,14 @@ or	al, ah
 out	INT_S_CTLMASK, al
 popf
 
+ret
+
+enable_int:
+sti
+ret
+
+disable_int:
+cli
 ret
 
 donothing:

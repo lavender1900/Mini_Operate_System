@@ -36,7 +36,7 @@ PUBLIC	void	schedule()
 PUBLIC	void	TestA()
 {
 	while(1) {
-		disp_str("A.");
+//		disp_str("A.");
 		milli_delay(150);
 	}
 }
@@ -44,7 +44,7 @@ PUBLIC	void	TestA()
 PUBLIC	void	TestB()
 {
 	while(1) {
-		disp_str("B.");
+//		disp_str("B.");
 		milli_delay(200);
 	}
 }
@@ -52,7 +52,7 @@ PUBLIC	void	TestB()
 PUBLIC	void	TestC()
 {
 	while(1) {
-		disp_str("C.");
+//		disp_str("C.");
 		milli_delay(200);
 	}
 }
