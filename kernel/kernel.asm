@@ -244,8 +244,7 @@ hwint00:
 	hwint_master	0
 
 hwint01:
-push	1
-jmp	hexception
+	hwint_master	1
 
 hwint02:
 push	2

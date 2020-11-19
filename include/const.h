@@ -19,6 +19,9 @@
 #define	INT_S_CTL	0xA0 // Write to this port enable initialize 8259A slave chip
 #define	INT_S_CTLMASK	0xA1 // Write to this port enable control interrupt response of slave chip
 
+#define	CLOCK_IRQ	0
+#define	KEYBOARD_IRQ	1	
+
 #define	PRIVILEGE_KERNEL	0
 #define	PRIVILEGE_USER		3
 

@@ -17,6 +17,12 @@ PUBLIC	void	clock_handler(int irq)
 	schedule();
 }
 
+PUBLIC	void	init_clock()
+{
+	add_irq_handler(CLOCK_IRQ, clock_handler);
+	enable_irq(CLOCK_IRQ);
+}
+
 PUBLIC	void	milli_delay(int milli_sec)
 {
 	int  t = get_ticks();

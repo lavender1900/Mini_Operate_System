@@ -16,6 +16,10 @@ PUBLIC	int kernel_main()
 {
 	disp_str("-------\"kernel_main\" begins-------\n");
 	
+	// init 8259A interrupt handler mappings
+	init_clock();
+	init_keyboard();
+	
 	// Change the frequency of time interrupt to 100HZ
 	out_byte(TIMER_MODE, RATE_GENERATOR);
 	out_byte(TIMER0, (u8) (TIMER_FREQ / TIME_INT_FREQ));

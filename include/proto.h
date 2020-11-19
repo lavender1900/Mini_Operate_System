@@ -21,11 +21,16 @@ PUBLIC void	sys_call();
 PUBLIC int	get_ticks();
 PUBLIC void	milli_delay(int milli);
 PUBLIC void	schedule();
+PUBLIC void	init_keyboard();
+PUBLIC void	init_clock();
+PUBLIC void	add_irq_handler(int irq, irq_handler handler);
 
 PUBLIC void	clock_handler(int irq);
 PUBLIC void	init_8259A();
 PUBLIC void	spurious_irq(int irq);
 PUBLIC void	init_prot();
+PUBLIC void	enable_irq(int irq);
+PUBLIC void	disable_irq(int irq);
 
 PUBLIC	void	divide_error();
 PUBLIC	void	single_step_exception();

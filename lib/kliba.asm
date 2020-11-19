@@ -1,3 +1,4 @@
+%include	"kconst.inc"
 
 [section .text]
 
@@ -7,6 +8,8 @@ global	disp_str
 global	disp_color_str
 global	out_byte
 global	in_byte
+global	enable_irq
+global	disable_irq
 global	donothing
 
 ;*******************  Display String which ended in '0', String offset passed by stack ***********************
@@ -151,6 +154,57 @@ nop
 
 pop	edx
 pop	ebp
+
+ret
+
+;***************** Set 8259A to enable the corresponding interrupts *******************
+enable_irq:
+mov	ecx, [esp + 4]
+pushf
+cli
+mov	ah, 0xFE 
+rol	ah, cl
+cmp	cl, 8
+jae	enable_8
+enable_0:
+in	al, INT_M_CTLMASK
+and	al, ah
+out	INT_M_CTLMASK, al
+popf
+
+ret
+
+enable_8:
+in	al, INT_S_CTLMASK
+and	al, ah
+out	INT_S_CTLMASK, al
+popf
+
+ret
+
+;***************** Set 8259A to disable the corresponding interrupt *****************
+disable_irq:
+mov	ecx, [esp + 4]
+pushf
+cli
+
+mov	ah, 1
+rol	ah, cl
+cmp	cl, 8
+jae	disable_8
+disable_0:
+in	al, INT_M_CTLMASK
+or	al, ah
+out	INT_M_CTLMASK, al
+popf
+
+ret
+
+disable_8:
+in	al, INT_S_CTLMASK
+or	al, ah
+out	INT_S_CTLMASK, al
+popf
 
 ret
 
