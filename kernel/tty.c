@@ -3,14 +3,14 @@
 #include	"proto.h"
 #include	"keyboard.h"
 #include	"global.h"
+#include	"console.h"
 
 PRIVATE	void	init_tty(TTY* p_tty)
 {
 	p_tty->in_buf_count = 0;
 	p_tty->p_in_buf_head = p_tty->p_in_buf_tail = p_tty->in_buf;
 
-	int nr = p_tty - tty_table;
-	p_tty->p_console = console_table + nr;
+	init_screen(p_tty);
 }
 
 PRIVATE	void	tty_do_read(TTY* p_tty)
@@ -40,7 +40,9 @@ PUBLIC	void	task_tty()
 	for (p_tty = tty_table; p_tty < tty_table + NR_CONSOLES; p_tty++) {
 		init_tty(p_tty);
 	}
-	current_console = 0;
+
+	select_console(0);
+
 	while(1) {
 		for (p_tty = tty_table; p_tty < tty_table + NR_CONSOLES; p_tty++) {
 			tty_do_read(p_tty);
@@ -78,6 +80,23 @@ PUBLIC	void	in_process(TTY* p_tty, u32 key)
 		case DOWN:
 			if ((key & FLAG_SHIFT_L) || (key & FLAG_SHIFT_R)) {
 			// do nothing
+			}
+			break;
+		
+		case F1:
+		case F2:
+		case F3:
+		case F4:
+		case F5:
+		case F6:
+		case F7:
+		case F8:
+		case F9:
+		case F10:
+		case F11:
+		case F12:
+			if ((key & FLAG_ALT_L) || (key & FLAG_ALT_R)) {
+				select_console(raw_code - F1);
 			}
 			break;
 		

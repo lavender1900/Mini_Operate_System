@@ -1,5 +1,6 @@
 #include	"type.h"
 #include	"console.h"
+#include	"tty.h"
 
 #ifndef _LAVENDER_PROTO_H_
 #define	_LAVENDER_PROTO_H_
@@ -32,6 +33,9 @@ PUBLIC void	keyboard_read();
 PUBLIC void	in_process();
 PUBLIC void	task_tty();
 PUBLIC int	is_current_console(CONSOLE* p_console);
+PUBLIC void	init_screen(TTY* p_tty);
+PUBLIC void	select_console(int nr_con);
+PUBLIC void	out_char(CONSOLE* p_console, char ch);
 
 PUBLIC void	clock_handler(int irq);
 PUBLIC void	init_8259A();
