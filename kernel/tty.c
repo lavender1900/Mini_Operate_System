@@ -7,12 +7,18 @@
 
 PRIVATE	void	put_key(TTY* p_tty, u32 key);
 
-PRIVATE	void	init_tty(TTY* p_tty)
+PUBLIC	void	init_tty()
 {
-	p_tty->in_buf_count = 0;
-	p_tty->p_in_buf_head = p_tty->p_in_buf_tail = p_tty->in_buf;
+	TTY* p_tty;
 
-	init_screen(p_tty);
+	for (p_tty = tty_table; p_tty < tty_table + NR_CONSOLES; p_tty++) {
+		p_tty->in_buf_count = 0;
+		p_tty->p_in_buf_head = p_tty->p_in_buf_tail = p_tty->in_buf;
+
+		init_screen(p_tty);
+	}
+	
+	select_console(0);
 }
 
 PRIVATE	void	tty_do_read(TTY* p_tty)
@@ -35,15 +41,19 @@ PRIVATE	void	tty_do_write(TTY* p_tty)
 	}
 }
 
+PUBLIC	void	tty_write(TTY* p_tty, char* buf, int len)
+{
+	char* p = buf;
+	int i = len;
+	while (i) {
+		out_char(p_tty->p_console, *p++);
+		i--;
+	}
+}
+
 PUBLIC	void	task_tty()
 {
-	TTY*	p_tty;
-	
-	for (p_tty = tty_table; p_tty < tty_table + NR_CONSOLES; p_tty++) {
-		init_tty(p_tty);
-	}
-
-	select_console(0);
+	TTY* p_tty;
 
 	while(1) {
 		for (p_tty = tty_table; p_tty < tty_table + NR_CONSOLES; p_tty++) {

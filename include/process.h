@@ -1,5 +1,6 @@
 #include	"type.h"
 #include	"const.h"
+#include	"protect.h"
 
 #ifndef	_LAVENDER_PROCESS_H_
 #define	_LAVENDER_PROCESS_H_
@@ -42,6 +43,7 @@ typedef	struct	s_proc
 	int	ticks;
 	int	priority;
 	u32	pid;
+	u32	nr_tty;
 	char	p_name[16];
 	char	stack[STACK_SIZE];
 } PROCESS;

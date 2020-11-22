@@ -62,7 +62,7 @@ PUBLIC	void	init_screen(TTY* p_tty)
 {
 	int nr_tty = p_tty - tty_table;
 	p_tty->p_console = console_table + nr_tty;
-	
+
 	int v_mem_size = V_MEM_SIZE >> 1;
 	
 	int con_v_mem_size = v_mem_size / NR_CONSOLES;

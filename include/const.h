@@ -11,7 +11,7 @@
 #define	NR_TASKS	4
 #define	NR_IRQS		16
 #define	NR_CONSOLES	3
-#define	NR_SYS_CALL	1
+#define	NR_SYS_CALL	2
 
 #define	EXTERN	extern
 

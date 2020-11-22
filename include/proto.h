@@ -1,6 +1,7 @@
 #include	"type.h"
 #include	"console.h"
 #include	"tty.h"
+#include	"process.h"
 
 #ifndef _LAVENDER_PROTO_H_
 #define	_LAVENDER_PROTO_H_
@@ -37,6 +38,12 @@ PUBLIC void	init_screen(TTY* p_tty);
 PUBLIC void	select_console(int nr_con);
 PUBLIC void	out_char(CONSOLE* p_console, char ch);
 PUBLIC void	scroll_screen(CONSOLE* p, int direction);
+PUBLIC	void	init_tty();
+
+PUBLIC int	sys_write(char* buf, int len, PROCESS* p_proc);
+PUBLIC void	write(char* buf, int len);
+PUBLIC void	tty_write(TTY* p_tty, char* buf, int len);
+PUBLIC int	printf(const char* fmt, ...);
 
 PUBLIC void	clock_handler(int irq);
 PUBLIC void	init_8259A();

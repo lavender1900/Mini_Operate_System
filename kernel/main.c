@@ -9,7 +9,6 @@
 void	init_descriptor(DESCRIPTOR* p, u32 base, u32 limit, u16 att);
 u32	seg2phys(u16 seg);
 void	process_start();
-void	donothing();
 PRIVATE void	restore_tss_func(DESCRIPTOR* p);
 
 PUBLIC	int kernel_main()
@@ -19,6 +18,9 @@ PUBLIC	int kernel_main()
 	// init 8259A interrupt handler mappings
 	init_clock();
 	init_keyboard();
+
+	// init tty and console
+	init_tty();
 	
 	// Change the frequency of time interrupt to 100HZ
 	out_byte(TIMER_MODE, RATE_GENERATOR);
@@ -32,6 +34,7 @@ PUBLIC	int kernel_main()
 	u8		dpl = DA_DPL3;
 	u16		cs = (SELECTOR_KERNEL_CS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
 	u16		ss = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
+	u32		eflags = 0x202;
 	
 	int priority = 200;
 
@@ -43,11 +46,13 @@ PUBLIC	int kernel_main()
 			dpl = DA_DPL1;
 			cs = (SELECTOR_KERNEL_CS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL1;	
 			ss = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL1;
+			eflags = 0x1202;
 		}
 
 		p_proc->pid = i;
 		p_proc->ldt_selector = selector_ldt;
 		p_proc->priority = p_proc->ticks = priority;
+		p_proc->nr_tty = i/2;
 
 		// *************** Initialize Descriptors in LDT ******************
 		kmemcpy(&gdt[SELECTOR_KERNEL_CS >> 3], &p_proc->ldts[1], sizeof(DESCRIPTOR));
@@ -83,7 +88,7 @@ PUBLIC	int kernel_main()
 		p_proc->regs.eip = (u32) p_task->initial_eip;
 		p_proc->regs.esp = ((u32) &p_proc->stack) + STACK_SIZE;
 
-		p_proc->regs.eflags = 0x3202;
+		p_proc->regs.eflags = eflags;
 
 		p_proc++;
 		p_task++;

@@ -9,4 +9,6 @@ typedef	void	(* int_handler)();
 typedef	void	(* irq_handler)(int irq);
 typedef	void*	system_call;
 
+typedef	char*	va_list;
+
 #endif

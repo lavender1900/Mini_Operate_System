@@ -36,28 +36,34 @@ PUBLIC	void	schedule()
 PUBLIC	void	TestA()
 {
 	while(1) {
-//		disp_str("A.");
-		milli_delay(150);
+		printf("<Ticks: %x>", get_ticks());
+		milli_delay(350);
 	}
 }
 
 PUBLIC	void	TestB()
 {
 	while(1) {
-//		disp_str("B.");
-		milli_delay(200);
+		printf("B.");
+		milli_delay(400);
 	}
 }
 
 PUBLIC	void	TestC()
 {
 	while(1) {
-//		disp_str("C.");
-		milli_delay(200);
+		printf("C.");
+		milli_delay(500);
 	}
 }
 
 PUBLIC	int	sys_get_ticks()
 {
 	return ticks;
+}
+
+PUBLIC	int	sys_write(char* buf, int len, PROCESS* p_proc)
+{
+	tty_write(&tty_table[p_proc->nr_tty], buf, len);
+	return 0;
 }

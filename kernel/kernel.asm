@@ -337,8 +337,12 @@ jmp	[esi + RETADR - P_STACKBASE]
 sys_call:
 call	save
 sti
+push	dword [p_current_process]
+push	ecx
+push	ebx
 
 call	[sys_call_table + eax * 4]
+add	esp, 12
 mov	[esi + EAXREG - P_STACKBASE], eax
 
 cli
