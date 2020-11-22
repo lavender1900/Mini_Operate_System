@@ -22,6 +22,10 @@
 
 #define	CLOCK_IRQ	0
 #define	KEYBOARD_IRQ	1	
+#define	LED_CODE	0xED
+#define	KB_ACK		0XFA
+#define	KB_DATA		0x60	
+#define	KB_CMD		0x64
 
 #define	PRIVILEGE_KERNEL	0
 #define	PRIVILEGE_USER		3

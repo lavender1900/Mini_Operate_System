@@ -36,6 +36,7 @@ PUBLIC int	is_current_console(CONSOLE* p_console);
 PUBLIC void	init_screen(TTY* p_tty);
 PUBLIC void	select_console(int nr_con);
 PUBLIC void	out_char(CONSOLE* p_console, char ch);
+PUBLIC void	scroll_screen(CONSOLE* p, int direction);
 
 PUBLIC void	clock_handler(int irq);
 PUBLIC void	init_8259A();
