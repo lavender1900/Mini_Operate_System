@@ -55,5 +55,8 @@ typedef	struct	s_task
 	char		name[32];
 } TASK;	
 
+PUBLIC	void	TestA();
+PUBLIC	void	TestB();
+PUBLIC	void	TestC();
 
 #endif

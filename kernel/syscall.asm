@@ -1,9 +1,5 @@
 %include	"kconst.inc"
 
-NR_get_ticks		equ	0
-NR_write		equ	1
-INT_SYS_CALL		equ	0x70
-
 global	get_ticks
 global	write
 

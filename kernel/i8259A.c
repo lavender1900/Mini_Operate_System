@@ -1,8 +1,6 @@
-#include	"const.h"
-#include	"type.h"
+#include	"8259A.h"
+#include	"asm_lib.h"
 #include	"protect.h"
-#include	"proto.h"
-#include	"global.h"
 
 PUBLIC void init_8259A() {
  out_byte(INT_M_CTL, 0x11); // Master ICW1
@@ -19,15 +17,4 @@ PUBLIC void init_8259A() {
 
  out_byte(INT_M_CTLMASK, 0xFE); // OCW1, Mask out all interrupts of Master chip
  out_byte(INT_S_CTLMASK, 0xFF); // OCW1, Mask out all interrupts of Slave chip
-}
-
-PUBLIC	void	add_irq_handler(int irq, irq_handler handler)
-{
-	irq_table[irq] = handler;
-}
-
-PUBLIC void spurious_irq(int irq)
-{
-	disp_str("spurious_irq: ");
-	disp_int(irq);
 }

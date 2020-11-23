@@ -1,13 +1,14 @@
-#include	"const.h"
 #include	"type.h"
-#include	"proto.h"
 #include	"global.h"
 #include	"protect.h"
 #include	"process.h"
 #include	"i386macros.h"
+#include	"asm_lib.h"
+#include	"clock.h"
+#include	"keyboard.h"
+#include	"tty.h"
+#include	"io.h"
 
-void	init_descriptor(DESCRIPTOR* p, u32 base, u32 limit, u16 att);
-u32	seg2phys(u16 seg);
 void	process_start();
 PRIVATE void	restore_tss_func(DESCRIPTOR* p);
 
@@ -22,10 +23,6 @@ PUBLIC	int kernel_main()
 	// init tty and console
 	init_tty();
 	
-	// Change the frequency of time interrupt to 100HZ
-	out_byte(TIMER_MODE, RATE_GENERATOR);
-	out_byte(TIMER0, (u8) (TIMER_FREQ / TIME_INT_FREQ));
-	out_byte(TIMER0, (u8) ((TIMER_FREQ / TIME_INT_FREQ) >> 8));
 
 	TASK*		p_task = 	task_table;
 	PROCESS*	p_proc =	proc_table;

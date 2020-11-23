@@ -18,7 +18,7 @@ DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 
 BOOT		= boot/boot.bin boot/loader.bin
 KERNEL		= kernel.bin
-OBJS		= kernel/kernel.o kernel/start.o kernel/global.o kernel/protect.o kernel/i8259A.o kernel/main.o kernel/process.o kernel/syscall.o kernel/clock.o kernel/keyboard.o kernel/tty.o kernel/console.o kernel/printf.o kernel/vsprintf.o lib/kliba.o lib/klib.o lib/mem.o
+OBJS		= kernel/kernel.o kernel/start.o kernel/global.o kernel/protect.o kernel/i8259A.o kernel/interrupts.o kernel/main.o kernel/process.o kernel/syscall.o kernel/clock.o kernel/system_calls.o kernel/keyboard.o kernel/tty.o kernel/console.o lib/time.o lib/string.o lib/printf.o lib/vsprintf.o lib/kliba.o lib/klib.o lib/memory.o
 DASMOUTPUT	= kernel.bin.debug.asm
 
 # actions
@@ -61,50 +61,62 @@ $(KERNEL) : $(OBJS)
 kernel/kernel.o : kernel/kernel.asm
 	$(ASM) $(ASMKERNELFLAGS) -o $@ $<
 
-kernel/start.o : kernel/start.c include/type.h include/const.h include/protect.h include/proto.h include/global.h
+kernel/start.o : kernel/start.c include/type.h include/protect.h include/io.h include/global.h include/asm_lib.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/global.o : kernel/global.c include/type.h include/const.h include/protect.h include/proto.h include/global.h
+kernel/global.o : kernel/global.c include/type.h include/const.h include/process.h include/system_calls.h include/global.h include/tty.h include/console.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/protect.o : kernel/protect.c include/type.h include/const.h include/protect.h include/proto.h include/global.h
+kernel/protect.o : kernel/protect.c include/protect.h include/i386macros.h include/global.h include/interrupts.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/i8259A.o : kernel/i8259A.c include/type.h include/const.h include/protect.h include/proto.h include/global.h
+kernel/i8259A.o : kernel/i8259A.c include/8259A.h include/asm_lib.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/main.o : kernel/main.c include/type.h include/const.h include/protect.h include/proto.h include/global.h include/process.h include/i386macros.h	
+kernel/main.o : kernel/main.c include/type.h include/global.h include/protect.h include/process.h include/i386macros.h include/asm_lib.h include/clock.h include/keyboard.h include/tty.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/process.o : kernel/process.c include/type.h include/const.h include/global.h include/process.h include/proto.h
+kernel/process.o : kernel/process.c include/io.h include/time.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/clock.o : kernel/clock.c include/type.h include/const.h include/global.h include/process.h include/proto.h
+kernel/clock.o : kernel/clock.c include/clock.h include/global.h include/asm_lib.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/keyboard.o : kernel/keyboard.c include/type.h include/const.h include/proto.h include/keyboard.h include/keymap.h
+kernel/interrupts.o : kernel/interrupts.c include/type.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/tty.o : kernel/tty.c include/const.h include/type.h include/proto.h include/console.h
+kernel/system_calls.o : kernel/system_calls.c include/process.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/console.o : kernel/console.c include/const.h include/type.h include/proto.h
+kernel/keyboard.o : kernel/keyboard.c include/keyboard.h include/keymap.h include/tty.h include/asm_lib.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/printf.o : kernel/printf.c include/const.h include/proto.h include/type.h
+kernel/tty.o : kernel/tty.c include/const.h include/type.h include/keyboard.h include/global.h include/tty.h include/console.h
 	$(CC) $(CFLAGS) -o $@ $<
 
-kernel/vsprintf.o : kernel/vsprintf.c include/type.h include/const.h include/proto.h
+kernel/console.o : kernel/console.c include/const.h include/type.h include/proto.h include/console.h include/global.h
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/syscall.o : kernel/syscall.asm
 	$(ASM) $(ASMKERNELFLAGS) -o $@ $<
 
-lib/klib.o : lib/klib.c include/type.h include/const.h include/protect.h include/proto.h include/global.h
+lib/printf.o : lib/printf.c include/const.h include/proto.h include/type.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/vsprintf.o : lib/vsprintf.c include/type.h include/string.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/time.o : lib/time.c include/proto.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/string.o : lib/string.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/klib.o : lib/klib.c include/string.h include/io.h
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/kliba.o : lib/kliba.asm
 	$(ASM) $(ASMKERNELFLAGS) -o $@ $<
 
-lib/mem.o : lib/mem.asm
+lib/memory.o : lib/memory.asm
 	$(ASM) $(ASMKERNELFLAGS) -o $@ $<

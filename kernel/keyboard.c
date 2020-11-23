@@ -1,9 +1,8 @@
-#include	"type.h"
-#include	"const.h"
-#include	"proto.h"
 #include	"keyboard.h"
 #include	"keymap.h"
 #include	"tty.h"
+#include	"asm_lib.h"
+#include	"interrupts.h"
 
 PRIVATE	KB_INPUT	kb_in;
 PRIVATE int		code_with_E0;
@@ -19,53 +18,11 @@ PRIVATE	int		scroll_lock;
 PRIVATE	int		column;
 
 PRIVATE	u8		get_byte_from_kbuf();
+PRIVATE	void		kb_wait();
+PRIVATE	void		kb_ack();
+PRIVATE	void		set_leds();
+PRIVATE	void		keyboard_handler(int irq);
 
-// ************ Wait 8042 Keyboard Controller buffer empty *****************
-PRIVATE	void	kb_wait()
-{
-	u8 kb_stat;
-	
-	do {
-		kb_stat = in_byte(KB_CMD);
-	} while (kb_stat & 0x02);
-}
-
-// ************ 8048 Keyboard Encoder ACK ****************
-PRIVATE	void	kb_ack()
-{
-	u8 kb_read;
-	
-	do {
-		kb_read = in_byte(KB_DATA);
-	} while(kb_read != KB_ACK);
-}
-
-PRIVATE	void	set_leds()
-{
-	u8 leds = (caps_lock << 2) | (num_lock << 1) | scroll_lock;
-	
-	kb_wait();
-	out_byte(KB_DATA, LED_CODE);
-	kb_ack();
-
-	kb_wait();
-	out_byte(KB_DATA, leds);
-	kb_ack();
-}
-
-PUBLIC	void	keyboard_handler(int irq)
-{
-	u8 scan_code = in_byte(0x60);
-
-	if (kb_in.count < KB_IN_BYTES)
-	{
-		*(kb_in.p_head) = scan_code;
-		kb_in.p_head++;
-		if (kb_in.p_head == kb_in.buf + KB_IN_BYTES)
-			kb_in.p_head = kb_in.buf;
-		kb_in.count++;
-	}
-}
 
 PUBLIC	void	init_keyboard()
 {
@@ -275,7 +232,7 @@ PUBLIC	void	keyboard_read(TTY* p_tty)
 				key |= (alt_r ? FLAG_ALT_R : 0);
 				key |= (pad ? FLAG_PAD : 0);
 
-				in_process(p_tty, key); 
+				tty_input_process(p_tty, key); 
 			}
 		}
 	}
@@ -295,4 +252,51 @@ PRIVATE	u8	get_byte_from_kbuf() {
 	enable_int();
 
 	return scan_code;
+}
+
+PRIVATE	void	keyboard_handler(int irq)
+{
+	u8 scan_code = in_byte(0x60);
+
+	if (kb_in.count < KB_IN_BYTES)
+	{
+		*(kb_in.p_head) = scan_code;
+		kb_in.p_head++;
+		if (kb_in.p_head == kb_in.buf + KB_IN_BYTES)
+			kb_in.p_head = kb_in.buf;
+		kb_in.count++;
+	}
+}
+
+// ************ Wait 8042 Keyboard Controller buffer empty *****************
+PRIVATE	void	kb_wait()
+{
+	u8 kb_stat;
+	
+	do {
+		kb_stat = in_byte(KB_CMD);
+	} while (kb_stat & 0x02);
+}
+
+// ************ 8048 Keyboard Encoder ACK ****************
+PRIVATE	void	kb_ack()
+{
+	u8 kb_read;
+	
+	do {
+		kb_read = in_byte(KB_DATA);
+	} while(kb_read != KB_ACK);
+}
+
+PRIVATE	void	set_leds()
+{
+	u8 leds = (caps_lock << 2) | (num_lock << 1) | scroll_lock;
+	
+	kb_wait();
+	out_byte(KB_DATA, LED_CODE);
+	kb_ack();
+
+	kb_wait();
+	out_byte(KB_DATA, leds);
+	kb_ack();
 }

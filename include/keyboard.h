@@ -1,6 +1,10 @@
 #ifndef	_LAVENDER_KEYBOARD_H_
 #define	_LAVENDER_KEYBOARD_H_
 
+#include	"type.h"
+#include	"const.h"
+#include	"tty.h"
+
 /* Total copied from Orange's reference code, because writing these is too trivial */
 
 #define	KB_IN_BYTES	32	/* size of keyboard input buffer */
@@ -106,9 +110,11 @@
 #define PAD_MID		PAD_5			/* Middle key	*/
 #define PAD_DEL		PAD_DOT			/* Del		*/
 
-/************************************************************************/
-/*                         Stucture Definition                          */
-/************************************************************************/
+#define	LED_CODE	0xED
+#define	KB_ACK		0XFA
+#define	KB_DATA		0x60	
+#define	KB_CMD		0x64
+
 /* Keyboard structure, 1 per console. */
 typedef struct s_kb {
 	char*	p_head;	
@@ -117,6 +123,7 @@ typedef struct s_kb {
 	char	buf[KB_IN_BYTES];
 }KB_INPUT;
 
-
+PUBLIC	void	init_keyboard();
+PUBLIC	void	keyboard_read(TTY* p_tty);
 
 #endif

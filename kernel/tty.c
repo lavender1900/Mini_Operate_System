@@ -1,11 +1,13 @@
 #include	"const.h"
 #include	"type.h"
-#include	"proto.h"
 #include	"keyboard.h"
 #include	"global.h"
+#include	"tty.h"
 #include	"console.h"
 
 PRIVATE	void	put_key(TTY* p_tty, u32 key);
+PRIVATE	void	tty_do_read(TTY* p_tty);
+PRIVATE	void	tty_do_write(TTY* p_tty);
 
 PUBLIC	void	init_tty()
 {
@@ -21,25 +23,6 @@ PUBLIC	void	init_tty()
 	select_console(0);
 }
 
-PRIVATE	void	tty_do_read(TTY* p_tty)
-{
-	if (is_current_console(p_tty->p_console)) {
-		keyboard_read(p_tty);
-	}
-}
-
-PRIVATE	void	tty_do_write(TTY* p_tty)
-{
-	if (p_tty->in_buf_count > 0) {
-		char ch = *p_tty->p_in_buf_tail++;
-		if (p_tty->p_in_buf_tail == p_tty->in_buf + TTY_IN_BYTES) {
-			p_tty->p_in_buf_tail = p_tty->in_buf;
-		}
-		p_tty->in_buf_count--;
-
-		out_char(p_tty->p_console, ch);
-	}
-}
 
 PUBLIC	void	tty_write(TTY* p_tty, char* buf, int len)
 {
@@ -63,7 +46,7 @@ PUBLIC	void	task_tty()
 	}
 }
 
-PUBLIC	void	in_process(TTY* p_tty, u32 key)
+PUBLIC	void	tty_input_process(TTY* p_tty, u32 key)
 {
 	char output[2] = {'\0', '\0'};
 	
@@ -122,5 +105,25 @@ PRIVATE	void	put_key(TTY* p_tty, u32 key)
 			p_tty->p_in_buf_head = p_tty->in_buf;
 		}
 		p_tty->in_buf_count++;
+	}
+}
+
+PRIVATE	void	tty_do_read(TTY* p_tty)
+{
+	if (is_current_console(p_tty->p_console)) {
+		keyboard_read(p_tty);
+	}
+}
+
+PRIVATE	void	tty_do_write(TTY* p_tty)
+{
+	if (p_tty->in_buf_count > 0) {
+		char ch = *p_tty->p_in_buf_tail++;
+		if (p_tty->p_in_buf_tail == p_tty->in_buf + TTY_IN_BYTES) {
+			p_tty->p_in_buf_tail = p_tty->in_buf;
+		}
+		p_tty->in_buf_count--;
+
+		out_char(p_tty->p_console, ch);
 	}
 }

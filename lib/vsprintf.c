@@ -1,21 +1,5 @@
 #include	"type.h"
-#include	"const.h"
-#include	"proto.h"
-
-PRIVATE	void	_strcpy(char* ptr, char* src)
-{
-	char c;
-	while ((c = *src++) != '\0')
-		*ptr++ = c;
-}
-
-PRIVATE	int	_strlen(char* p)
-{
-	int i = 0;
-	while (*p++ != '\0')
-		i++;
-	return i;
-}
+#include	"string.h"
 
 PUBLIC	int	vsprintf(char* buf, const char* fmt, va_list args)
 {

@@ -2,6 +2,7 @@
 #define	_LAVENDER_CONSOLE_H_
 
 #include	"type.h"
+#include	"tty.h"
 
 typedef	struct	s_console
 {
@@ -16,5 +17,11 @@ typedef	struct	s_console
 
 #define	SCREEN_SIZE	80 * 25
 #define	SCREEN_WIDTH	80
+
+PUBLIC	int	is_current_console(CONSOLE* p_console);
+PUBLIC	void	select_console(int nr_con);
+PUBLIC	void	scroll_screen(CONSOLE* p, int direction);
+PUBLIC	void	init_screen(TTY* p_tty);
+PUBLIC	void	out_char(CONSOLE* p_con, char ch);
 
 #endif

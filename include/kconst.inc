@@ -7,6 +7,10 @@ INT_M_CTLMASK		equ	0x21
 INT_S_CTL		equ	0xA0
 INT_S_CTLMASK		equ	0xA1
 
+NR_get_ticks		equ	0
+NR_write		equ	1
+INT_SYS_CALL		equ	0x70
+
 EOI			equ	0x20
 
 P_STACKBASE	equ	0

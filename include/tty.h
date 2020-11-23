@@ -18,4 +18,9 @@ typedef	struct	s_tty
 	struct	s_console*	p_console;
 } TTY;
 
+PUBLIC	void	init_tty();
+PUBLIC	void	tty_write(TTY* p_tty, char* buf, int len);
+PUBLIC	void	task_tty();
+PUBLIC	void	tty_input_process(TTY* p_tty, u32 key);
+
 #endif

@@ -1,7 +1,8 @@
-#include	"type.h"
-
 #ifndef _LAVENDER_PROTECT_H_
 #define	_LAVENDER_PROTECT_H_
+
+#include	"type.h"
+#include	"const.h"
 
 typedef struct s_descriptor
 {
@@ -63,12 +64,41 @@ typedef	struct	s_tss
 #define	SELECTOR_KERNEL_DS	SELECTOR_FLAT_RW	
 #define	SELECTOR_KERNEL_GS	SELECTOR_VIDEO	
 
-#define	PRIVILEGE_TASK		0x3
+#define	PRIVILEGE_KERNEL	0
+#define	PRIVILEGE_TASK		1
+#define	PRIVILEGE_USER		3
+
+#define	INT_VECTOR_IRQ0		0x20
+#define	INT_VECTOR_IRQ8		0x28
+
+#define	INT_VECTOR_DIVIDE	0
+#define	INT_VECTOR_DEBUG	1
+#define	INT_VECTOR_NMI		2
+#define	INT_VECTOR_BREAKPOINT	3
+#define	INT_VECTOR_OVERFLOW	4
+#define	INT_VECTOR_BOUNDS	5
+#define	INT_VECTOR_INVAL_OP	6
+#define	INT_VECTOR_COPROC_NOT	7
+#define	INT_VECTOR_DOUBLE_FAULT	8
+#define	INT_VECTOR_COPROC_SEG	9
+#define	INT_VECTOR_INVAL_TSS	10
+#define	INT_VECTOR_SEG_NOT	11
+#define	INT_VECTOR_STACK_FAULT	12
+#define	INT_VECTOR_PROTECTION	13
+#define	INT_VECTOR_PAGE_FAULT	14
+#define	INT_VECTOR_COPROC_ERR	15
+
+#define	INT_VECTOR_SYS_CALL	0x70
 
 #define	SA_RPL_MASK		0xFFFC
 #define	SA_TI_MASK		0xFFFB
 #define	SA_FULL_MASK		0xFFF8
 
 #define	vir2phys(seg_base, vir) (u32)((u32)seg_base + (u32)vir)
+
+PUBLIC	void	cpu_reserved_exception_handler(int vec_no, int errcode, int eip, int cs, int eflags);
+PUBLIC	void	init_descriptor(DESCRIPTOR* p_desc, u32 base, u32 limit, u16 attr);
+PUBLIC	u32	seg2phys(u16 seg);
+PUBLIC	void	init_protect_mode_interrupt_mechanism();
 
 #endif

@@ -1,8 +1,8 @@
-#include	"const.h"
 #include	"type.h"
 #include	"protect.h"
-#include	"proto.h"
 #include	"global.h"
+#include	"io.h"
+#include	"asm_lib.h"
 
 void	initializeGlobalParameters();
 
@@ -25,7 +25,7 @@ PUBLIC void cstart() {
  *p_idt_limit = IDT_SIZE * sizeof(GATE) - 1;
  *p_idt_base = (u32) &idt;
 
- init_prot();
+ init_protect_mode_interrupt_mechanism();
 
  disp_str("--------------\"cstart\" ends----------------\n");
 }

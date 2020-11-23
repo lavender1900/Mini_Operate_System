@@ -1,8 +1,3 @@
-;-------- Memory Copy Function ----------
-; C style is like kmemcpy(void* srcPtr, void* destPtr, int copyLen)
-;
-; Copy unit is byte
-; Function will consider DS:srcPtr points to src, ES:destPtr points to dest
 
 global	kmemcpy
 global	kmemset
@@ -10,7 +5,11 @@ global	kmemset
 [section .text]
 align 32
 [bits 32]
-;***************** kmemcpy(void* src, void* dest, int copyBytes) ******************
+;***************** Memory Copy Function ******************
+; C style is like kmemcpy(void* srcPtr, void* destPtr, int copyLen)
+;
+; Copy unit is byte
+; Function will consider DS:srcPtr points to src, ES:destPtr points to dest
 kmemcpy:
 push	ebp
 mov	ebp, esp

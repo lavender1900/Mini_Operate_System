@@ -1,9 +1,9 @@
-#include	"const.h"
-#include	"type.h"
-#include	"proto.h"
 #include	"global.h"
 #include	"protect.h"
+#include	"interrupts.h"
 #include	"i386macros.h"
+#include	"8259A.h"
+#include	"io.h"
 
 void	hwint00();
 void	hwint01();
@@ -23,7 +23,9 @@ void	hwint14();
 void	hwint15();
 void	sys_call();
 
-PUBLIC void exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
+PRIVATE void init_idt_descriptor(unsigned char vector, u8 desc_type, int_handler handler, unsigned char privilege);
+
+PUBLIC void cpu_reserved_exception_handler(int vec_no, int err_code, int eip, int cs, int eflags)
 {
 	int i;
 	int text_color = 0x74; // Gray back, Red chars
@@ -73,16 +75,6 @@ PUBLIC void exception_handler(int vec_no, int err_code, int eip, int cs, int efl
 	}
 } 
 
-PRIVATE void init_idt_descriptor(unsigned char vector, u8 desc_type, int_handler handler, unsigned char privilege)
-{
-	GATE*	p_gate = &idt[vector];
-	u32	base = (u32) handler;
-	p_gate->offset_low = base & 0xFFFF;
-	p_gate->selector = SELECTOR_KERNEL_CS;
-	p_gate->dcount = 0;
-	p_gate->attr = desc_type | (privilege << 5);
-	p_gate->offset_high = (base >> 16) & 0xFFFF;	
-}
 
 PUBLIC void init_descriptor(DESCRIPTOR* p_desc, u32 base, u32 limit, u16 attribute)
 {
@@ -100,7 +92,7 @@ PUBLIC u32 seg2phys(u16 seg)
 	return (p->base_high << 24 | p->base_mid << 16 | p->base_low);
 }
 
-PUBLIC void init_prot()
+PUBLIC void init_protect_mode_interrupt_mechanism()
 {
 	init_8259A();
 
@@ -141,4 +133,15 @@ PUBLIC void init_prot()
 	init_idt_descriptor(INT_VECTOR_IRQ8 + 7, DA_386INT_GATE, hwint15, PRIVILEGE_KERNEL);
 
 	init_idt_descriptor(INT_VECTOR_SYS_CALL, DA_386INT_GATE, sys_call, PRIVILEGE_USER);
+}
+
+PRIVATE void init_idt_descriptor(unsigned char vector, u8 desc_type, int_handler handler, unsigned char privilege)
+{
+	GATE*	p_gate = &idt[vector];
+	u32	base = (u32) handler;
+	p_gate->offset_low = base & 0xFFFF;
+	p_gate->selector = SELECTOR_KERNEL_CS;
+	p_gate->dcount = 0;
+	p_gate->attr = desc_type | (privilege << 5);
+	p_gate->offset_high = (base >> 16) & 0xFFFF;	
 }

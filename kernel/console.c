@@ -3,8 +3,8 @@
 #include	"proto.h"
 #include	"console.h"
 #include	"global.h"
+#include	"asm_lib.h"
 
-PUBLIC	void	out_char(CONSOLE* p, char ch);
 PRIVATE	void	set_video_start_addr(u32 addr);
 PRIVATE	void	set_cursor(u32 pos);
 PRIVATE	void	flush(CONSOLE* p);
@@ -13,17 +13,6 @@ PUBLIC	int	is_current_console(CONSOLE* p_console)
 {
 	return (p_console == &console_table[current_console]);
 }
-
-PRIVATE	void	set_cursor(u32 pos)
-{
-	disable_int();
-	out_byte(CRTC_ADDR_REG, CURSOR_H);
-	out_byte(CRTC_DATA_REG, (pos >> 8) & 0xFF);
-	out_byte(CRTC_ADDR_REG, CURSOR_L);
-	out_byte(CRTC_DATA_REG, pos & 0xFF);
-	enable_int();
-}
-	
 
 PUBLIC	void	out_char(CONSOLE* p_console, char ch)
 {
@@ -99,6 +88,16 @@ PUBLIC	void	scroll_screen(CONSOLE* p_con, int direction)
 	}
 
 	flush(p_con);
+}
+
+PRIVATE	void	set_cursor(u32 pos)
+{
+	disable_int();
+	out_byte(CRTC_ADDR_REG, CURSOR_H);
+	out_byte(CRTC_DATA_REG, (pos >> 8) & 0xFF);
+	out_byte(CRTC_ADDR_REG, CURSOR_L);
+	out_byte(CRTC_DATA_REG, pos & 0xFF);
+	enable_int();
 }
 
 PRIVATE	void	set_video_start_addr(u32 addr)

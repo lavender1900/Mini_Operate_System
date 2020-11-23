@@ -3,7 +3,7 @@
 extern	cstart
 extern	gdt_ptr
 extern	idt_ptr
-extern	exception_handler
+extern	cpu_reserved_exception_handler
 extern	spurious_irq
 extern	kernel_main
 extern	p_current_process
@@ -234,7 +234,7 @@ push	15
 jmp	exception
 
 exception:
-call	exception_handler
+call	cpu_reserved_exception_handler
 add	esp, 8
 hlt
 iretd
