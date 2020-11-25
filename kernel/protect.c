@@ -86,12 +86,6 @@ PUBLIC void init_descriptor(DESCRIPTOR* p_desc, u32 base, u32 limit, u16 attribu
 	p_desc->base_high = (base >> 24) & 0x0FF;
 }
 
-PUBLIC u32 seg2phys(u16 seg)
-{
-	DESCRIPTOR* p = &gdt[seg >> 3];
-	return (p->base_high << 24 | p->base_mid << 16 | p->base_low);
-}
-
 PUBLIC void init_protect_mode_interrupt_mechanism()
 {
 	init_8259A();

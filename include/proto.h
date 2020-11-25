@@ -9,9 +9,12 @@ PUBLIC void	TestA();
 PUBLIC void	TestB();
 PUBLIC void	TestC();
 
+PUBLIC	void	donothing();
+
 PUBLIC void	sys_call();
 
 PUBLIC int	get_ticks();
-PUBLIC void	write(char* buf, int len);
+PUBLIC int	write(char* buf, int len);
+PUBLIC int	printx(int unused, char* buf);
 
 #endif

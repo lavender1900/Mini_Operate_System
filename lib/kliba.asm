@@ -12,6 +12,7 @@ global	enable_irq
 global	disable_irq
 global	disable_int
 global	enable_int
+global	donothing
 
 ;*******************  Display String which ended in '0', String offset passed by stack ***********************
 disp_str:
@@ -214,4 +215,8 @@ ret
 
 disable_int:
 cli
+ret
+
+donothing:
+xchg	bx, bx
 ret

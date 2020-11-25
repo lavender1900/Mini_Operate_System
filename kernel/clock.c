@@ -5,7 +5,6 @@
 
 PRIVATE	void	clock_handler(int irq);
 PRIVATE	void	change_time_interrupt_freq();
-PRIVATE	void	schedule();
 
 PUBLIC	void	init_clock()
 {
@@ -35,7 +34,7 @@ PRIVATE	void	change_time_interrupt_freq()
 	out_byte(TIMER0, (u8) ((TIMER_FREQ / TIME_INT_FREQ) >> 8));
 }
 
-PRIVATE	void	schedule()
+PUBLIC	void	schedule()
 {
 	PROCESS* p;
 	int	greatest_ticks = 0;

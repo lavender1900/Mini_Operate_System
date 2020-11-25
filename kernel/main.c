@@ -8,6 +8,7 @@
 #include	"keyboard.h"
 #include	"tty.h"
 #include	"io.h"
+#include	"page.h"
 
 void	process_start();
 PRIVATE void	restore_tss_func(DESCRIPTOR* p);
@@ -32,6 +33,7 @@ PUBLIC	int kernel_main()
 	u16		cs = (SELECTOR_KERNEL_CS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
 	u16		ss = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL3;
 	u32		eflags = 0x202;
+	int		proc_type = PROC_TYPE_USER;
 	
 	int priority = 200;
 
@@ -44,12 +46,14 @@ PUBLIC	int kernel_main()
 			cs = (SELECTOR_KERNEL_CS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL1;	
 			ss = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL1;
 			eflags = 0x1202;
+			proc_type = PROC_TYPE_TASK;
 		}
 
 		p_proc->pid = i;
 		p_proc->ldt_selector = selector_ldt;
 		p_proc->priority = p_proc->ticks = priority;
 		p_proc->nr_tty = i/2;
+		p_proc->proc_type = proc_type;
 
 		// *************** Initialize Descriptors in LDT ******************
 		kmemcpy(&gdt[SELECTOR_KERNEL_CS >> 3], &p_proc->ldts[1], sizeof(DESCRIPTOR));
@@ -59,7 +63,7 @@ PUBLIC	int kernel_main()
 		
 		// ************** Initialize LDT Descritpor in GDT ******************
 		init_descriptor(&gdt[(selector_ldt & SA_FULL_MASK) >> 3],
-				vir2phys(seg2phys(SELECTOR_KERNEL_DS), &p_proc->ldts),
+				vir2linear(selector2base(SELECTOR_KERNEL_DS), &p_proc->ldts),
 				LDT_SIZE * sizeof(DESCRIPTOR) - 1,
 				DA_LDT);
 
@@ -69,7 +73,7 @@ PUBLIC	int kernel_main()
 		p_shared_tss->esp0 = (u32)p_proc + (u32)sizeof(STACK_FRAME);
 
 		init_descriptor(&gdt[(SELECTOR_TSS & SA_FULL_MASK) >> 3],
-			vir2phys(seg2phys(SELECTOR_KERNEL_DS), p_shared_tss),
+			vir2linear(selector2base(SELECTOR_KERNEL_DS), p_shared_tss),
 			sizeof(TSS) - 1,
 			DA_386TSS);
 		p_shared_tss->iobase = sizeof(TSS);

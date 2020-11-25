@@ -315,9 +315,15 @@ push	ds
 push	es
 push	fs
 push	gs
+
+mov	esi, edx
+
 mov	dx, ss
 mov	ds, dx
 mov	es, dx
+mov	fs, dx
+
+mov	edx, esi
 mov	esi, esp
 
 inc	dword [k_reenter]
@@ -338,9 +344,9 @@ sys_call:
 call	save
 sti
 push	dword [p_current_process]
+;push	edx
 push	ecx
 push	ebx
-
 call	[sys_call_table + eax * 4]
 add	esp, 12
 mov	[esi + EAXREG - P_STACKBASE], eax

@@ -94,11 +94,9 @@ typedef	struct	s_tss
 #define	SA_TI_MASK		0xFFFB
 #define	SA_FULL_MASK		0xFFF8
 
-#define	vir2phys(seg_base, vir) (u32)((u32)seg_base + (u32)vir)
 
 PUBLIC	void	cpu_reserved_exception_handler(int vec_no, int errcode, int eip, int cs, int eflags);
 PUBLIC	void	init_descriptor(DESCRIPTOR* p_desc, u32 base, u32 limit, u16 attr);
-PUBLIC	u32	seg2phys(u16 seg);
 PUBLIC	void	init_protect_mode_interrupt_mechanism();
 
 #endif

@@ -9,6 +9,8 @@ INT_S_CTLMASK		equ	0xA1
 
 NR_get_ticks		equ	0
 NR_write		equ	1
+NR_sendrec		equ	2
+NR_printx		equ	3
 INT_SYS_CALL		equ	0x70
 
 EOI			equ	0x20

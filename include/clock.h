@@ -10,5 +10,6 @@
 #define	TIME_INT_FREQ		100
 
 PUBLIC	void	init_clock();	
+PUBLIC	void	schedule();
 
 #endif

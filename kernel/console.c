@@ -43,7 +43,7 @@ PUBLIC	void	out_char(CONSOLE* p_console, char ch)
 	while(p_console->cursor >= p_console->current_start_addr + SCREEN_SIZE) {
 		scroll_screen(p_console, SCR_DOWN);
 	}
-	
+
 	flush(p_console);
 }
 

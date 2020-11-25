@@ -1,12 +1,12 @@
+#ifndef	_LAVENDER_GLOBAL_H_
+#define	_LAVENDER_GLOBAL_H_ 
+
 #include	"protect.h"
 #include	"process.h"
 #include	"const.h"
 #include	"type.h"
 #include	"console.h"
 #include	"tty.h"
-
-#ifndef	_LAVENDER_GLOBAL_H_
-#define	_LAVENDER_GLOBAL_H_ 
 
 #ifdef	GLOBAL_PARAMETER_HERE
 #undef	EXTERN

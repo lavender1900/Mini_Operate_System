@@ -14,7 +14,7 @@ PUBLIC	TTY		tty_table[NR_CONSOLES];
 PUBLIC	CONSOLE		console_table[NR_CONSOLES];
 PUBLIC	TSS		shared_tss;
 PUBLIC	irq_handler	irq_table[NR_IRQS];
-PUBLIC	system_call	sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_write};
+PUBLIC	system_call	sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_write, sys_sendrec, sys_printx};
 
 PUBLIC 	void	initializeGlobalParameters()
 {
