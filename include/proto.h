@@ -9,7 +9,11 @@ PUBLIC void	TestA();
 PUBLIC void	TestB();
 PUBLIC void	TestC();
 
+PUBLIC	void	task_sys();
+
 PUBLIC	void	donothing();
+
+PUBLIC	int	sendrec(int func, int src_dest, MESSAGE* msg);
 
 PUBLIC void	sys_call();
 

@@ -5,6 +5,7 @@ PUBLIC	void	_strcpy(char* ptr, char* src)
 	char c;
 	while ((c = *src++) != '\0')
 		*ptr++ = c;
+	*ptr = '\0';
 }
 
 PUBLIC	int	_strlen(char* p)

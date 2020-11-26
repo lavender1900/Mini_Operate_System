@@ -4,6 +4,7 @@
 #include	"ipc.h"
 #include	"page.h"
 #include	"asm_lib.h"
+#include	"io.h"
 
 PUBLIC	int	sys_get_ticks()
 {
@@ -16,10 +17,10 @@ PUBLIC	int	sys_write(char* buf, int len, PROCESS* p_proc)
 	return 0;
 }
 
-PUBLIC	int	sys_sendrec(int function, int src_dest, MESSAGE* msg, PROCESS* p)
+PUBLIC	int	sys_sendrec(int function, int src_dest, PROCESS* p,  MESSAGE* msg)
 {
 	assert(k_reenter == 0);
-	assert((0 <= src_dest && NR_TASKS > src_dest) || ANY == src_dest || INTERRUPT == src_dest);
+	assert((0 <= src_dest && NR_TASKS+NR_PROCS > src_dest) || ANY == src_dest || INTERRUPT == src_dest);
 	
 	int ret = 0;
 	int caller = proc2pid(p);

@@ -1,6 +1,8 @@
 #ifndef	_LAVENDER_IPC_H_
 #define	_LAVENDER_IPC_H_
 
+#include	"process.h"
+
 #define	ASSERT
 #ifdef	ASSERT
 	void	assertion_failure(char* exp, char* file, char* base_file, int line);
@@ -13,6 +15,8 @@
 PUBLIC	int	panic(char* format, ...);
 PUBLIC	int	msg_send(PROCESS* current, int dest, MESSAGE* m);	
 PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m);
+PUBLIC	int	send_recv(int function, int src_dest, MESSAGE* msg);
+PUBLIC	void	reset_msg(MESSAGE* msg);
 
 // Message Source
 #define	NO_TASK		-1
@@ -25,9 +29,12 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m);
 // Function type
 #define	SEND		1
 #define	RECEIVE		2
+#define	BOTH		3
 
 // Process flag
 #define	SENDING		0x2
 #define	RECEIVING	0x4
+
+#define	TASK_SYS	4
 
 #endif

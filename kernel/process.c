@@ -9,7 +9,6 @@ PUBLIC	void	TestA()
 {
 	while(1) {
 		printf("<Ticks: %5x>", get_ticks());
-		assert(get_ticks() > 5000);
 		milli_delay(350);
 	}
 }

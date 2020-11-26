@@ -9,6 +9,7 @@
 #include	"tty.h"
 #include	"io.h"
 #include	"page.h"
+#include	"ipc.h"
 
 void	process_start();
 PRIVATE void	restore_tss_func(DESCRIPTOR* p);
@@ -37,10 +38,10 @@ PUBLIC	int kernel_main()
 	
 	int priority = 200;
 
-	for (int i = 0; i < NR_TASKS; i++)
+	for (int i = 0; i < NR_PROCS+NR_TASKS; i++)
 	{
 
-		if (i == NR_TASKS - 1)
+		if (i == NR_PROCS)
 		{
 			dpl = DA_DPL1;
 			cs = (SELECTOR_KERNEL_CS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL1;	
@@ -54,6 +55,13 @@ PUBLIC	int kernel_main()
 		p_proc->priority = p_proc->ticks = priority;
 		p_proc->nr_tty = i/2;
 		p_proc->proc_type = proc_type;
+		p_proc->p_flags = 0;
+		p_proc->p_recvfrom = NO_TASK;
+		p_proc->p_sendto = NO_TASK;
+		p_proc->has_int_msg = 0;
+		p_proc->q_sending = 0;
+		p_proc->next_sending = 0;
+		_strcpy(p_proc->name, p_task->name);
 
 		// *************** Initialize Descriptors in LDT ******************
 		kmemcpy(&gdt[SELECTOR_KERNEL_CS >> 3], &p_proc->ldts[1], sizeof(DESCRIPTOR));

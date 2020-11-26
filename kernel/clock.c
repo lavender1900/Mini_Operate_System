@@ -41,9 +41,9 @@ PUBLIC	void	schedule()
 	
 	while (!greatest_ticks)
 	{
-		for (p = proc_table; p < proc_table + NR_TASKS; p++)
+		for (p = proc_table; p < proc_table + NR_PROCS + NR_TASKS; p++)
 		{
-			if (p->ticks > greatest_ticks)
+			if (p->p_flags == 0 && p->ticks > greatest_ticks)
 			{
 				greatest_ticks = p->ticks;
 				p_current_process = p;
@@ -53,9 +53,10 @@ PUBLIC	void	schedule()
 
 		if (!greatest_ticks)
 		{
-			for (p = proc_table; p < proc_table + NR_TASKS; p++)
+			for (p = proc_table; p < proc_table + NR_PROCS + NR_TASKS; p++)
 			{
-				p->ticks = p->priority;
+				if (p->p_flags == 0)
+					p->ticks = p->priority;
 			}
 		}
 	}

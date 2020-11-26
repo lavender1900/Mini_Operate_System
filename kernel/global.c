@@ -7,9 +7,10 @@
 #include	"system_calls.h"
 #include	"tty.h"
 #include	"console.h"
+#include	"proto.h"
 
-PUBLIC	TASK	task_table[NR_TASKS] = {{TestA, STACK_SIZE, "Process A"}, {TestB, STACK_SIZE, "Process B"},
-					{TestC, STACK_SIZE, "Process C"}, {task_tty, STACK_SIZE, "TTY"}};
+PUBLIC	TASK	task_table[NR_TASKS+NR_PROCS] = {{TestA, STACK_SIZE, "Process A"}, {TestB, STACK_SIZE, "Process B"},
+					{TestC, STACK_SIZE, "Process C"}, {task_tty, STACK_SIZE, "TTY"}, {task_sys, STACK_SIZE, "syscall"}};
 PUBLIC	TTY		tty_table[NR_CONSOLES];
 PUBLIC	CONSOLE		console_table[NR_CONSOLES];
 PUBLIC	TSS		shared_tss;

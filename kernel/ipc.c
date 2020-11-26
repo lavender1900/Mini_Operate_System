@@ -69,6 +69,31 @@ PUBLIC	int	deadlock(int src, int dest)
 	return 0;
 }	
 
+PUBLIC	int	send_recv(int function, int src_dest, MESSAGE* msg)
+{
+	int ret = 0;
+
+	if (function == RECEIVE)
+		kmemset(msg, 0, sizeof(MESSAGE));
+
+	switch(function) {
+	case BOTH:
+		ret = sendrec(SEND, src_dest, msg);
+		if (ret == 0)
+			ret = sendrec(RECEIVE, src_dest, msg);
+		break;
+	case SEND:
+	case RECEIVE:
+		ret = sendrec(function, src_dest, msg);
+		break;
+	default:
+		assert(function == BOTH || function == SEND || function == RECEIVE);
+		break;
+	}
+
+	return ret;
+}
+
 PUBLIC	int	msg_send(PROCESS* current, int dest, MESSAGE* m)
 {
 	PROCESS* p_sender = current;
@@ -86,8 +111,8 @@ PUBLIC	int	msg_send(PROCESS* current, int dest, MESSAGE* m)
 		assert(p_dest->p_msg);
 		assert(m);
 
-		kmemcpy((void*)vir2linear(proc2pid(p_sender), m),
-			(void*)vir2linear(dest, p_dest->p_msg),
+		kmemcpy((void*)vir2linear(ldt_proc_id2base(proc2pid(p_sender)), m),
+			(void*)vir2linear(ldt_proc_id2base(dest), p_dest->p_msg),
 			sizeof(MESSAGE));
 
 		p_dest->p_msg = 0;
@@ -105,6 +130,7 @@ PUBLIC	int	msg_send(PROCESS* current, int dest, MESSAGE* m)
 		assert(p_sender->p_sendto == NO_TASK);
 	}
 	else {
+
 		/* dest is not waiting for message */
 		p_sender->p_flags |= SENDING;
 		assert(p_sender->p_flags == SENDING);
@@ -142,7 +168,7 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m)
 	int copyok = 0;
 
 	assert(proc2pid(p_who_wanna_recv) != src);
-	
+
 	if ((p_who_wanna_recv->has_int_msg) &&
 		((src == ANY) || (src == INTERRUPT))) {
 		MESSAGE msg;
@@ -151,7 +177,7 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m)
 		msg.type = HARD_INT;
 		assert(m);
 		kmemcpy(&msg,
-			(void*)vir2linear(proc2pid(p_who_wanna_recv), m),
+			(void*)vir2linear(ldt_proc_id2base(proc2pid(p_who_wanna_recv)), m),
 			sizeof(MESSAGE));
 		p_who_wanna_recv->has_int_msg = 0;
 		
@@ -169,16 +195,16 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m)
 			copyok = 1;
 			assert(p_who_wanna_recv->p_flags == 0);
 			assert(p_who_wanna_recv->p_msg == 0);
-			assert(p_who_wanna_recv->p_recvfrom == 0);
-			assert(p_who_wanna_recv->p_sendto == 0);
+			assert(p_who_wanna_recv->p_recvfrom == NO_TASK);
+			assert(p_who_wanna_recv->p_sendto == NO_TASK);
 			assert(p_who_wanna_recv->q_sending != 0);
-			assert(p_from->p_flags == 0);
+			assert(p_from->p_flags == SENDING);
 			assert(p_from->p_msg != 0);
 			assert(p_from->p_recvfrom == NO_TASK);
 			assert(p_from->p_sendto == proc2pid(p_who_wanna_recv));
 		}
 	}
-	else if(src >= 0 && src < NR_TASKS) {
+	else if(src >= 0 && src < NR_TASKS+NR_PROCS) {
 		p_from = &proc_table[src];
 		if ((p_from->p_flags & SENDING) &&
 			(p_from->p_sendto == proc2pid(p_who_wanna_recv))) {
@@ -220,9 +246,10 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m)
 
 		assert(m);
 		assert(p_from->p_msg);
+	
 
-		kmemcpy((void*)vir2linear(proc2pid(p_from), p_from->p_msg),
-			(void*)vir2linear(proc2pid(p_who_wanna_recv), m),
+		kmemcpy((void*)vir2linear(ldt_proc_id2base(proc2pid(p_from)), p_from->p_msg),
+			(void*)vir2linear(ldt_proc_id2base(proc2pid(p_who_wanna_recv)), m),
 			sizeof(MESSAGE));
 
 		p_from->p_msg = 0;

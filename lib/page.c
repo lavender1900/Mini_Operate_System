@@ -11,7 +11,7 @@ PUBLIC	u32 selector2base(u16 seg)
 
 PUBLIC	u32	ldt_proc_id2base(int proc_id)
 {
-	if (proc_id < 0 || proc_id >= NR_TASKS)
+	if (proc_id < 0 || proc_id >= NR_TASKS+NR_PROCS)
 		panic("proc_id %d out of bound!", proc_id);
 
 	PROCESS* p_proc = &proc_table[proc_id];

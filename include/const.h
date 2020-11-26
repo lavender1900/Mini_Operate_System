@@ -8,7 +8,8 @@
 #define	IDT_SIZE	256
 #define	LDT_SIZE	3
 
-#define	NR_TASKS	4
+#define	NR_PROCS	3
+#define	NR_TASKS	2
 #define	NR_IRQS		16
 #define	NR_CONSOLES	3
 #define	NR_SYS_CALL	4
@@ -17,8 +18,5 @@
 
 #define	CLOCK_IRQ	0
 #define	KEYBOARD_IRQ	1	
-
-#define MAG_CH_PANIC	109
-#define	MAG_CH_ASSERT	108
 
 #endif

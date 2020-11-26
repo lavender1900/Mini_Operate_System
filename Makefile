@@ -18,7 +18,7 @@ DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 
 BOOT		= boot/boot.bin boot/loader.bin
 KERNEL		= kernel.bin
-OBJS		= kernel/kernel.o kernel/start.o kernel/global.o kernel/protect.o kernel/i8259A.o kernel/interrupts.o kernel/main.o kernel/process.o kernel/syscall.o kernel/clock.o kernel/system_calls.o kernel/keyboard.o kernel/tty.o kernel/console.o kernel/ipc.o lib/time.o lib/string.o lib/printf.o lib/vsprintf.o lib/kliba.o lib/klib.o lib/memory.o lib/page.o
+OBJS		= kernel/kernel.o kernel/start.o kernel/global.o kernel/protect.o kernel/i8259A.o kernel/interrupts.o kernel/main.o kernel/process.o kernel/syscall.o kernel/clock.o kernel/system_calls.o kernel/keyboard.o kernel/tty.o kernel/console.o kernel/ipc.o kernel/api.o kernel/systask.o lib/time.o lib/string.o lib/printf.o lib/vsprintf.o lib/kliba.o lib/klib.o lib/memory.o lib/page.o
 DASMOUTPUT	= kernel.bin.debug.asm
 
 # actions
@@ -101,6 +101,12 @@ kernel/syscall.o : kernel/syscall.asm
 	$(ASM) $(ASMKERNELFLAGS) -o $@ $<
 
 kernel/ipc.o : kernel/ipc.c include/type.h include/const.h include/io.h include/proto.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/api.o : kernel/api.c include/type.h include/const.h include/api.h
+	$(CC) $(CFLAGS) -o $@ $<
+
+kernel/systask.o : kernel/systask.c include/type.h include/const.h include/ipc.h include/api.h
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/printf.o : lib/printf.c include/const.h include/proto.h include/type.h
