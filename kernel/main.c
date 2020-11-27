@@ -10,6 +10,7 @@
 #include	"io.h"
 #include	"page.h"
 #include	"ipc.h"
+#include	"string.h"
 
 void	process_start();
 PRIVATE void	restore_tss_func(DESCRIPTOR* p);
@@ -48,6 +49,7 @@ PUBLIC	int kernel_main()
 			ss = (SELECTOR_KERNEL_DS & SA_RPL_MASK & SA_TI_MASK) | SA_LOCAL | SA_RPL1;
 			eflags = 0x1202;
 			proc_type = PROC_TYPE_TASK;
+			priority = 600;
 		}
 
 		p_proc->pid = i;
@@ -101,7 +103,7 @@ PUBLIC	int kernel_main()
 
 		p_proc++;
 		p_task++;
-		priority += 100;
+		priority -= 50;
 		selector_ldt += 8;
 	}
 	

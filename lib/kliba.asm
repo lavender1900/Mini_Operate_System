@@ -12,6 +12,8 @@ global	enable_irq
 global	disable_irq
 global	disable_int
 global	enable_int
+global	port_read
+global	port_write
 global	donothing
 
 ;*******************  Display String which ended in '0', String offset passed by stack ***********************
@@ -215,6 +217,46 @@ ret
 
 disable_int:
 cli
+ret
+
+port_read:
+push	ebp
+mov	ebp, esp
+push	ecx
+push	edx
+push	edi
+
+mov	edx, [ebp+8]	; port
+mov	edi, [ebp+12]	; buf
+mov	ecx, [ebp+16]	; times
+shr	ecx, 1
+cld
+rep	insw
+
+pop	edi
+pop	edx
+pop	ecx
+
+ret
+
+port_write:
+push	ebp
+mov	ebp, esp
+push	ecx
+push	edx
+push	esi
+
+mov	edx, [ebp+8]	;port
+mov	esi, [ebp+12]	;buf
+mov	ecx, [ebp+16]	;times
+shr	ecx, 1
+cld
+rep	outsw
+
+pop	esi
+pop	edx
+pop	ecx
+
 ret
 
 donothing:

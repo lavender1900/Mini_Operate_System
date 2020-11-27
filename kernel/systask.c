@@ -4,6 +4,7 @@
 #include	"api.h"
 #include	"global.h"
 #include	"io.h"
+#include	"message.h"
 
 PUBLIC	void	task_sys()
 {

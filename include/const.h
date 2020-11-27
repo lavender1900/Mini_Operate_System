@@ -9,14 +9,11 @@
 #define	LDT_SIZE	3
 
 #define	NR_PROCS	3
-#define	NR_TASKS	2
+#define	NR_TASKS	3
 #define	NR_IRQS		16
 #define	NR_CONSOLES	3
-#define	NR_SYS_CALL	4
+#define	NR_SYS_CALL	5
 
 #define	EXTERN	extern
-
-#define	CLOCK_IRQ	0
-#define	KEYBOARD_IRQ	1	
 
 #endif

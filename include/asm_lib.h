@@ -16,4 +16,7 @@ PUBLIC void	enable_int();
 PUBLIC void	enable_irq(int irq);
 PUBLIC void	disable_irq(int irq);
 
+PUBLIC	void	port_read(u16 port, void* buf, int n);
+PUBLIC	void	port_write(u16 port, void* buf, int n);
+
 #endif

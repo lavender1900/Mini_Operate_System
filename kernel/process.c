@@ -9,7 +9,7 @@ PUBLIC	void	TestA()
 {
 	while(1) {
 		printf("<Ticks: %5x>", get_ticks());
-		milli_delay(350);
+		milli_delay(150);
 	}
 }
 

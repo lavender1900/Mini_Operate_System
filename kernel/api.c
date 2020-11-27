@@ -1,8 +1,8 @@
 #include	"type.h"
 #include	"const.h"
-#include	"api.h"
-#include	"ipc.h"
 #include	"process.h"
+#include	"message.h"
+#include	"ipc.h"
 
 PUBLIC	int	get_ticks()
 {

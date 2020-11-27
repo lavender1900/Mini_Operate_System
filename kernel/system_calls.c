@@ -17,6 +17,34 @@ PUBLIC	int	sys_write(char* buf, int len, PROCESS* p_proc)
 	return 0;
 }
 
+PUBLIC	int	sys_sendint(int function, int dest, PROCESS* p, MESSAGE* msg)
+{
+	assert(k_reenter == 0);
+	assert(0 <= dest && NR_TASKS+NR_PROCS > dest);
+	assert(msg->source == INTERRUPT);
+
+	PROCESS* p_proc = proc_table + dest;
+	
+	if ((p_proc->p_flags & RECEIVING) && (p_proc->p_recvfrom == INTERRUPT || p_proc->p_recvfrom == ANY)) {
+		p_proc->has_int_msg = 0;
+		kmemcpy((void*)vir2linear(ldt_proc_id2base(proc2pid(p)), msg),
+			(void*)vir2linear(ldt_proc_id2base(dest), p_proc->p_msg),
+			sizeof(MESSAGE));
+
+		p_proc->p_flags &= ~RECEIVING;
+		p_proc->p_recvfrom = NO_TASK;
+		unblock(p_proc);
+
+		assert(p_proc->p_flags == 0);
+		assert(p_proc->p_recvfrom == NO_TASK);
+		assert(p_proc->p_sendto == NO_TASK);
+	} else {
+		p_proc->has_int_msg = 1;
+	}
+
+	return 0;
+}
+
 PUBLIC	int	sys_sendrec(int function, int src_dest, PROCESS* p,  MESSAGE* msg)
 {
 	assert(k_reenter == 0);

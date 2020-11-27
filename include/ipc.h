@@ -16,7 +16,10 @@ PUBLIC	int	panic(char* format, ...);
 PUBLIC	int	msg_send(PROCESS* current, int dest, MESSAGE* m);	
 PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m);
 PUBLIC	int	send_recv(int function, int src_dest, MESSAGE* msg);
+PUBLIC	int	inform_int(int dest);
 PUBLIC	void	reset_msg(MESSAGE* msg);
+PUBLIC	void	block(PROCESS* p);
+PUBLIC	void	unblock(PROCESS* p);
 
 // Message Source
 #define	NO_TASK		-1
@@ -34,7 +37,5 @@ PUBLIC	void	reset_msg(MESSAGE* msg);
 // Process flag
 #define	SENDING		0x2
 #define	RECEIVING	0x4
-
-#define	TASK_SYS	4
 
 #endif

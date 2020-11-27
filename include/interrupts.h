@@ -22,4 +22,10 @@ PUBLIC	void	copr_error();
 
 PUBLIC	void	add_irq_handler(int irq, irq_handler hander);
 
+
+#define	CLOCK_IRQ	0
+#define	KEYBOARD_IRQ	1	
+#define CASCADE_IRQ	2
+#define	AT_WINI_IRQ	14
+
 #endif

@@ -69,6 +69,15 @@ PUBLIC	int	deadlock(int src, int dest)
 	return 0;
 }	
 
+PUBLIC	int	inform_int(int dest)
+{
+	MESSAGE msg;
+	msg.source = INTERRUPT;
+	msg.type = HARD_INT;
+	return sendint(SEND, dest, &msg);	
+}
+	
+
 PUBLIC	int	send_recv(int function, int src_dest, MESSAGE* msg)
 {
 	int ret = 0;
@@ -171,15 +180,12 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m)
 
 	if ((p_who_wanna_recv->has_int_msg) &&
 		((src == ANY) || (src == INTERRUPT))) {
-		MESSAGE msg;
-		reset_msg(&msg);
-		msg.source = INTERRUPT;
-		msg.type = HARD_INT;
-		assert(m);
-		kmemcpy(&msg,
+		assert(p_who_wanna_recv);
+		kmemcpy((void*)vir2linear(ldt_proc_id2base(proc2pid(p_who_wanna_recv)), p_who_wanna_recv->p_msg),
 			(void*)vir2linear(ldt_proc_id2base(proc2pid(p_who_wanna_recv)), m),
 			sizeof(MESSAGE));
 		p_who_wanna_recv->has_int_msg = 0;
+		p_who_wanna_recv->p_msg = 0;
 		
 		assert(p_who_wanna_recv->p_flags == 0);
 		assert(p_who_wanna_recv->p_msg == 0);

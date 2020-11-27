@@ -14,6 +14,7 @@ PUBLIC	void	task_sys();
 PUBLIC	void	donothing();
 
 PUBLIC	int	sendrec(int func, int src_dest, MESSAGE* msg);
+PUBLIC	int	sendint(int func, int dest, MESSAGE* msg);
 
 PUBLIC void	sys_call();
 
