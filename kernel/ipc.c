@@ -124,6 +124,7 @@ PUBLIC	int	msg_send(PROCESS* current, int dest, MESSAGE* m)
 			(void*)vir2linear(ldt_proc_id2base(dest), p_dest->p_msg),
 			sizeof(MESSAGE));
 
+		p_sender->p_msg = 0;
 		p_dest->p_msg = 0;
 		p_dest->p_flags &= ~RECEIVING;
 		p_dest->p_recvfrom = NO_TASK;

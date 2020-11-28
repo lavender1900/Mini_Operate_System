@@ -22,6 +22,9 @@ PUBLIC	void	out_char(CONSOLE* p_console, char ch)
 	case '\n':
 		if (p_console->cursor < p_console->original_addr + p_console->v_mem_limit - SCREEN_WIDTH) {
 			p_console->cursor = p_console->original_addr + SCREEN_WIDTH * (1 + ((p_console->cursor - p_console->original_addr) / SCREEN_WIDTH));
+		} else {
+			*(p_vmem - 2) = 'K';
+			*(p_vmem - 1) = RED_CHAR;
 		}
 		break;
 	case '\b':

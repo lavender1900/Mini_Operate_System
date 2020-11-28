@@ -84,11 +84,15 @@ ret
 call	save
 
 in	al, INT_S_CTLMASK
-or	al, (1 << %1) 
+or	al, (1 << (%1 - 8)) 
 out	INT_S_CTLMASK, al
 
+; For slave chip, EOI must send to both slave and master
 mov	al, EOI
 out	INT_S_CTL, al
+nop
+nop
+out	INT_M_CTL, al
 
 sti
 push	%1	
@@ -97,7 +101,7 @@ add	esp, 4
 cli
 
 in	al, INT_S_CTLMASK
-and	al, ~(1 << %1) 
+and	al, ~(1 << (%1 - 8)) 
 out	INT_S_CTLMASK, al
 
 ret
@@ -295,8 +299,7 @@ push	13
 jmp	hexception
 
 hwint14:
-push	14
-jmp	hexception
+	hwint_slave	14
 
 hwint15:
 push	15

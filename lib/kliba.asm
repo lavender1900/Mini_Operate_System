@@ -236,6 +236,7 @@ rep	insw
 pop	edi
 pop	edx
 pop	ecx
+pop	ebp
 
 ret
 
@@ -256,6 +257,7 @@ rep	outsw
 pop	esi
 pop	edx
 pop	ecx
+pop	ebp
 
 ret
 

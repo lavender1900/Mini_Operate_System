@@ -4,6 +4,7 @@
 #include	"proto.h"
 #include	"global.h"
 #include	"ipc.h"
+#include	"api.h"
 
 PUBLIC	void	TestA()
 {
@@ -17,8 +18,7 @@ PUBLIC	void	TestB()
 {
 	int i = 1;
 	while(1) {
-		printf("B.%3d %s", i++, "jet");
-		panic("To be continue...");
+		printf("I'm B");
 		milli_delay(400);
 	}
 }

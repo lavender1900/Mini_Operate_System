@@ -45,6 +45,7 @@ typedef struct {
 	int source;
 	int type;
 	int RETVAL;
+	int DEVICE;
 	union {
 		struct mess1 m1;
 		struct mess2 m2;

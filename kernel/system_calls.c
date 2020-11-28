@@ -19,7 +19,9 @@ PUBLIC	int	sys_write(char* buf, int len, PROCESS* p_proc)
 
 PUBLIC	int	sys_sendint(int function, int dest, PROCESS* p, MESSAGE* msg)
 {
-	assert(k_reenter == 0);
+	// 8259 interrupt handler running in ring 0, then handler use int 0x70 to send int message to task
+	// so k_reenter must be > 0
+	assert(k_reenter > 0);
 	assert(0 <= dest && NR_TASKS+NR_PROCS > dest);
 	assert(msg->source == INTERRUPT);
 

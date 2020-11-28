@@ -10,6 +10,7 @@ PUBLIC void	TestB();
 PUBLIC void	TestC();
 
 PUBLIC	void	task_sys();
+PUBLIC	void	task_fs();
 
 PUBLIC	void	donothing();
 

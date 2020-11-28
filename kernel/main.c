@@ -55,7 +55,8 @@ PUBLIC	int kernel_main()
 		p_proc->pid = i;
 		p_proc->ldt_selector = selector_ldt;
 		p_proc->priority = p_proc->ticks = priority;
-		p_proc->nr_tty = i/2;
+		//p_proc->nr_tty = i/2;
+		p_proc->nr_tty = 0;
 		p_proc->proc_type = proc_type;
 		p_proc->p_flags = 0;
 		p_proc->p_recvfrom = NO_TASK;

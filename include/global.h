@@ -7,6 +7,7 @@
 #include	"type.h"
 #include	"console.h"
 #include	"tty.h"
+#include	"drivers.h"
 
 #ifdef	GLOBAL_PARAMETER_HERE
 #undef	EXTERN
@@ -29,5 +30,6 @@ EXTERN int		ticks;
 EXTERN TTY		tty_table[];
 EXTERN CONSOLE		console_table[];	
 EXTERN int		current_console;
+EXTERN DEV_DRIVER	dev_drv_map[];
 
 #endif
