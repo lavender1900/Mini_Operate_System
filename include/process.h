@@ -46,6 +46,11 @@ typedef struct {
 	int type;
 	int RETVAL;
 	int DEVICE;
+	int CNT;
+	int PROC_NR;
+	int REQUEST;
+	u64 POSITION;
+	void* BUF;
 	union {
 		struct mess1 m1;
 		struct mess2 m2;

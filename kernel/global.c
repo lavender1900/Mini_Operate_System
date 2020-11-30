@@ -22,6 +22,8 @@ PUBLIC	irq_handler	irq_table[NR_IRQS];
 PUBLIC	system_call	sys_call_table[NR_SYS_CALL] = {sys_get_ticks, sys_write, sys_sendrec, sys_sendint, sys_printx};
 PUBLIC	DEV_DRIVER	dev_drv_map[] = {{INVALID_DRIVER}, {INVALID_DRIVER}, {INVALID_DRIVER},
 					{TASK_HD_DRIVER}, {TASK_TTY_DRIVER}, {INVALID_DRIVER}};	
+PUBLIC	u8*		fsbuf = (u8*)0x600000;
+PUBLIC	const	int	FSBUF_SIZE = 0x100000;
 
 PUBLIC 	void	initializeGlobalParameters()
 {

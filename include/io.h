@@ -10,5 +10,6 @@ PUBLIC void	disp_int(int input);
 
 PUBLIC	int	printf(const char* fmt, ...);
 PUBLIC	int	vsprintf(char* buf, const char* fmt, va_list args);
+PUBLIC	void	sprintf(char* buf, const char* fmt, ...);
 
 #endif

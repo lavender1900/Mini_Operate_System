@@ -9,10 +9,14 @@
 #include	"hd.h"
 #include	"io.h"
 #include	"proto.h"
+#include	"page.h"
 
 PRIVATE	void	init_hd();
 PRIVATE	void	hd_identify(int drive);
 PRIVATE	void	hd_open(int device);
+PRIVATE	void	hd_close(int device);
+PRIVATE	void	hd_ioctl(MESSAGE* msg);
+PRIVATE	void	hd_rdwt(MESSAGE* msg);
 PRIVATE	void	print_identify_info(u16* hdinfo);
 PRIVATE	void	hd_cmd_out(HD_CMD* cmd);
 PRIVATE	void	interrupt_wait();
@@ -42,6 +46,16 @@ PUBLIC	void	task_hd()
 		case DEV_OPEN:
 			hd_open(msg.DEVICE);	
 			break;
+		case DEV_CLOSE:
+			hd_close(msg.DEVICE);
+			break;
+		case DEV_READ:
+		case DEV_WRITE:
+			hd_rdwt(&msg);
+			break;
+		case DEV_IOCTL:
+			hd_ioctl(&msg);
+			break;
 		default:
 			panic("HD driver unknown message type : %d ", msg.type);
 			break;
@@ -52,6 +66,7 @@ PUBLIC	void	task_hd()
 
 PRIVATE	void	init_hd()
 {
+
 	u8* pNrDrives = (u8*)(0x475);
 	printf("NrDrives: %d.\n", *pNrDrives);
 	assert(*pNrDrives);
@@ -72,6 +87,80 @@ PRIVATE	void	hd_open(int device)
 	if (hd_info[drive].open_cnt++ == 0) {
 		partition(drive * (NR_PART_PER_DRIVE + 1), P_PRIMARY);
 		print_hdinfo(&hd_info[drive]);
+	}
+}
+
+PRIVATE	void	hd_close(int device)
+{
+	int drive = DRIVE_OF_DEV(device);
+	assert(drive == 0);
+	hd_info[drive].open_cnt--;
+}
+
+PRIVATE	void	hd_rdwt(MESSAGE* p)
+{
+	int drive = DRIVE_OF_DEV(p->DEVICE);
+	assert(drive == 0);
+	
+	u64 pos = p->POSITION;
+	assert((pos >> SECTOR_SIZE_SHIFT) < (1 << 31));
+
+	// only read or write in a sector boudary
+	assert((pos & 0x1FF) == 0);
+
+	u32 sect_nr = (u32)(pos >> SECTOR_SIZE_SHIFT);
+	int logidx = (p->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE;
+	sect_nr += p->DEVICE < MAX_PRIM ? hd_info[drive].primary[p->DEVICE].base :
+			hd_info[drive].logical[logidx].base;
+
+	HD_CMD cmd;
+	cmd.features = 0;
+	cmd.count = (p->CNT + SECTOR_SIZE - 1) / SECTOR_SIZE;
+	cmd.lba_low = sect_nr & 0xFF;
+	cmd.lba_mid = (sect_nr >> 8) & 0xFF;
+	cmd.lba_high = (sect_nr >> 16) & 0xFF;
+	cmd.device = MAKE_DEVICE_REG(1, drive, (sect_nr >> 24) & 0xF);
+	cmd.command = (p->type == DEV_READ) ? ATA_READ : ATA_WRITE;
+	hd_cmd_out(&cmd);
+	
+	int bytes_left = p->CNT;
+	void* la = (void*) vir2linear(ldt_proc_id2base(p->PROC_NR), p->BUF);
+
+	while (bytes_left) {
+		int bytes = SECTOR_SIZE < bytes_left ? SECTOR_SIZE : bytes_left;
+		if (p->type == DEV_READ) {
+			interrupt_wait();
+			port_read(REG_DATA, hdbuf, SECTOR_SIZE);
+			kmemcpy((void*)vir2linear(ldt_proc_id2base(TASK_HD), hdbuf), la, bytes);
+		}
+		else {
+			if (!waitfor(STATUS_DRQ, STATUS_DRQ, HD_TIMEOUT))
+				panic("hd writing error.");
+
+			port_write(REG_DATA, la, bytes);
+			interrupt_wait();
+		}
+
+		bytes_left -= bytes;
+		la += bytes;
+	}
+}
+
+PRIVATE	void	hd_ioctl(MESSAGE* p)
+{
+	int device = p->DEVICE;
+	int drive = DRIVE_OF_DEV(device);
+
+	HD_INFO* hdi = &hd_info[drive];
+
+	if (p->REQUEST == DIOCTL_GET_GEO) {
+		void* dest = (void*)vir2linear(ldt_proc_id2base(p->PROC_NR), p->BUF);
+		void* src = (void*)vir2linear(ldt_proc_id2base(TASK_HD), device < MAX_PRIM ? &hdi->primary[device]
+					: &hdi->logical[(device - MINOR_hd1a) % NR_SUB_PER_DRIVE]);
+		kmemcpy(src, dest, sizeof(PART_INFO));
+	}
+	else {
+		assert(0);
 	}
 }
 
@@ -119,10 +208,10 @@ PRIVATE	void	partition(int device, int style)
 		int j = device % NR_PRIM_PER_DRIVE;
 		int ext_start_sect = p_hd->primary[j].base;
 		int s = ext_start_sect;
-		int nr_last_sub = (j - 1) * NR_SUB_PER_PART;
+		int nr_1st_sub = (j - 1) * NR_SUB_PER_PART;
 		
 		for (int i = 0; i < NR_SUB_PER_PART; i++) {
-			int dev_nr = nr_last_sub + i;
+			int dev_nr = nr_1st_sub + i;
 			get_part_table(drive, s, part_table);
 			p_hd->logical[dev_nr].base = s + part_table[0].lba_start_sector;
 			p_hd->logical[dev_nr].size = part_table[0].sector_num;
@@ -141,7 +230,7 @@ PRIVATE	void	partition(int device, int style)
 PRIVATE	void	print_hdinfo(HD_INFO* p_hd)
 {
 	for (int i = 0; i < NR_PART_PER_DRIVE + 1; i++) {
-		printf("%sPART_%d: base %d(0x%x), size %d(0x%x) (in sector)\n",
+		printf("%sPART_%d: base %d(%x), size %d(%x) (in sector)\n",
 		i == 0? " " : "     ",
 		i,
 		p_hd->primary[i].base,
@@ -153,7 +242,7 @@ PRIVATE	void	print_hdinfo(HD_INFO* p_hd)
 	for (int i = 0; i < NR_SUB_PER_DRIVE; i++) {
 		if (p_hd->logical[i].size == 0)
 			continue;
-		printf("         %d: base %d(%x), size %d(%x) (in sector)\n",
+		printf("       %d: base %d(%x), size %d(%x) (in sector)\n",
 		i,
 		p_hd->logical[i].base,
 		p_hd->logical[i].base,

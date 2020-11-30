@@ -16,14 +16,17 @@
 #define	REG_STATUS		REG_CMD	
 
 #define	STATUS_BUSY		0x80
+#define	STATUS_DRQ		0x8
 
 #define	HD_TIMEOUT		10	// 10ms
 
 // hard disk controller command
 #define	ATA_IDENTIFY		0xEC
 #define	ATA_READ		0x20
+#define	ATA_WRITE		0x30
 
 #define	SECTOR_SIZE		512
+#define	SECTOR_SIZE_SHIFT	9
 
 #define	P_PRIMARY		0
 #define	P_EXTENDED		1
@@ -31,7 +34,8 @@
 #define	NO_PART			0	
 
 #define	MINOR_hd1a		0x10
-#define	ROOT_DEV		MAKE_DEV(DEV_HD, MINOR_hd1a)	
+#define	MINOR_hd2a		(MINOR_hd1a + NR_SUB_PER_PART)
+#define	ROOT_DEV		MAKE_DEV(DEV_HD, MINOR_hd2a)	
 
 #define	PARTITION_TABLE_OFFSET	0x1BE
 

@@ -8,6 +8,7 @@
 
 PUBLIC	void	TestA()
 {
+	int i = 0;
 	while(1) {
 		printf("<Ticks: %5x>", get_ticks());
 		milli_delay(150);

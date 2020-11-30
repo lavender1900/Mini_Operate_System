@@ -23,13 +23,15 @@ EXTERN PROCESS		proc_table[NR_TASKS];
 EXTERN PROCESS*		p_current_process;
 EXTERN u32		PROCESS_TABLE_LDT_SELECTOR_OFFSET;
 EXTERN u32		k_reenter;
-EXTERN TASK		task_table[];
+extern TASK		task_table[];
 EXTERN TSS*		p_shared_tss;
-EXTERN irq_handler	irq_table[];
+extern irq_handler	irq_table[];
 EXTERN int		ticks;
-EXTERN TTY		tty_table[];
-EXTERN CONSOLE		console_table[];	
+extern TTY		tty_table[];
+extern CONSOLE		console_table[];	
 EXTERN int		current_console;
-EXTERN DEV_DRIVER	dev_drv_map[];
+extern DEV_DRIVER	dev_drv_map[];
+extern u8*		fsbuf;
+extern const int	FSBUF_SIZE; 
 
 #endif
