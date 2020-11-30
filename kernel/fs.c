@@ -5,8 +5,7 @@
 
 PUBLIC	void	task_fs()
 {
-
-	printf("Task FS starts");
+	printf("Task FS starts.\n");
 	MESSAGE	msg;
 	msg.type = DEV_OPEN;
 	msg.DEVICE = MINOR(ROOT_DEV);

@@ -12,7 +12,7 @@ LD		= ld
 # Find *.inc files in include dir
 ASMBOOTFLAGS	= -I boot/include/
 ASMKERNELFLAGS	= -I include/ -f elf
-CFLAGS		= -I include/ -c -m32
+CFLAGS		= -I include/ -c -m32 -fno-builtin
 LDFLAGS		= -s -m elf_i386 -Ttext $(ENTRYPOINT)
 DASMFLAGS	= -u -o $(ENTRYPOINT) -e $(ENTRYOFFSET)
 
