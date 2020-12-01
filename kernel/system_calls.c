@@ -49,6 +49,7 @@ PUBLIC	int	sys_sendint(int function, int dest, PROCESS* p, MESSAGE* msg)
 
 PUBLIC	int	sys_sendrec(int function, int src_dest, PROCESS* p,  MESSAGE* msg)
 {
+	disable_int();
 	assert(k_reenter == 0);
 	assert((0 <= src_dest && NR_TASKS+NR_PROCS > src_dest) || ANY == src_dest || INTERRUPT == src_dest);
 	
