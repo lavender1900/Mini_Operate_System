@@ -10,6 +10,7 @@
 #include	"proto.h"
 #include	"hd.h"
 #include	"drivers.h"
+#include	"fs.h"
 
 PUBLIC	TASK	task_table[NR_TASKS+NR_PROCS] = {{TestA, STACK_SIZE, "Process A"}, {TestB, STACK_SIZE, "Process B"},
 					{TestC, STACK_SIZE, "Process C"}, {task_tty, STACK_SIZE, "TTY"}, 
@@ -24,6 +25,9 @@ PUBLIC	DEV_DRIVER	dev_drv_map[] = {{INVALID_DRIVER}, {INVALID_DRIVER}, {INVALID_
 					{TASK_HD_DRIVER}, {TASK_TTY_DRIVER}, {INVALID_DRIVER}};	
 PUBLIC	u8*		fsbuf = (u8*)0x600000;
 PUBLIC	const	int	FSBUF_SIZE = 0x100000;
+PUBLIC	FILE_DESC	f_desc_table[NR_FILE_DESC];
+PUBLIC	INODE		inode_table[NR_INODE];
+PUBLIC	SUPER_BLOCK	super_block[NR_SUPER_BLOCK];
 
 PUBLIC 	void	initializeGlobalParameters()
 {

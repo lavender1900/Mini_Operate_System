@@ -33,5 +33,9 @@ EXTERN int		current_console;
 extern DEV_DRIVER	dev_drv_map[];
 extern u8*		fsbuf;
 extern const int	FSBUF_SIZE; 
+extern FILE_DESC	f_desc_table[];
+extern INODE		inode_table[];
+extern SUPER_BLOCK	super_block[];
+EXTERN void*		root_inode;
 
 #endif

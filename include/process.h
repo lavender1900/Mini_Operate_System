@@ -4,6 +4,7 @@
 #include	"type.h"
 #include	"const.h"
 #include	"protect.h"
+#include	"fs.h"
 
 EXTERN	int	StackRing0Top;
 EXTERN	int	StackRing3Top;
@@ -49,6 +50,10 @@ typedef struct {
 	int CNT;
 	int PROC_NR;
 	int REQUEST;
+	int FLAGS;
+	int NAME_LEN;
+	int FD;
+	void* PATHNAME;
 	u64 POSITION;
 	void* BUF;
 	union {
@@ -99,6 +104,7 @@ typedef	struct	s_proc
 	int	has_int_msg;
 	struct s_proc* q_sending;
 	struct s_proc* next_sending;
+	FILE_DESC*	filp[NR_FILES];
 	char	stack[STACK_SIZE];
 } PROCESS;
 

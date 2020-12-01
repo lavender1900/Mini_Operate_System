@@ -6,6 +6,7 @@
 
 PUBLIC void*	kmemcpy(void* src, void* dest, int size);
 PUBLIC void*	kmemset(void* dest, u8 value, int setBytes);
+PUBLIC int	kmemcmp(void* src, void* dest, int maxCompareChars);
 
 PUBLIC void	out_byte(u32 port, u32 value); 
 PUBLIC u32	in_byte(u32 port);

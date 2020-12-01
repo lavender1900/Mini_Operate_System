@@ -1,6 +1,7 @@
 
 global	kmemcpy
 global	kmemset
+global	kmemcmp
 
 [section .text]
 align 32
@@ -65,5 +66,50 @@ pop	edi
 pop	eax
 pop	ecx
 pop	ebp
+
+ret
+
+;******************* kmemcmp(void* src, void* dest, int maxCompareChars) ********************
+kmemcmp:
+push	ebp
+mov	ebp, esp
+push	ecx
+push	edi
+push	esi
+push	ebx
+
+mov	esi, [ebp + 8] 	;src
+mov	edi, [ebp + 12]	;dest 
+mov	ecx, [ebp + 16]	;max compare chars
+ 
+xor	ebx, ebx
+.1:
+mov	bl, [esi];
+cmp	byte bl, [edi]
+jne	.2	
+
+test	bl, bl
+jz	.3
+
+sub	ecx, 1
+test	ecx, ecx
+jz	.3
+
+add	esi, 1
+add	edi, 1
+jmp	.1
+
+.2:
+mov	eax, 1
+jmp	.back
+
+.3:
+mov	eax, 0
+
+.back:
+pop	ebx
+pop	esi
+pop	edi
+pop	ecx
 
 ret

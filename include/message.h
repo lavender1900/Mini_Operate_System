@@ -8,6 +8,9 @@
 #define	DEV_READ	3
 #define	DEV_WRITE	4
 #define	DEV_IOCTL	5
+#define	SYSCALL_RET	6
+#define	OPEN		7
+#define	CLOSE		8
 
 // message request type
 #define	DIOCTL_GET_GEO		0
