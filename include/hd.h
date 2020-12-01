@@ -18,7 +18,7 @@
 #define	STATUS_BUSY		0x80
 #define	STATUS_DRQ		0x8
 
-#define	HD_TIMEOUT		10	// 10ms
+#define	HD_TIMEOUT		500	// 500ms
 
 // hard disk controller command
 #define	ATA_IDENTIFY		0xEC

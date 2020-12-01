@@ -10,7 +10,6 @@
 	#define	assert(exp) do {		\
 				if (exp) {}	\
 				else {		\
-					printf("ASSERTION FAILURE EXP VALUE = %x\n", exp);\
 					assertion_failure(#exp, __FILE__, __BASE_FILE__, __LINE__);\
 				}		\
 				} while(0)

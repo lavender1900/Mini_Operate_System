@@ -128,6 +128,7 @@ PUBLIC	int	msg_send(PROCESS* current, int dest, MESSAGE* m)
 		p_dest->p_msg = 0;
 		p_dest->p_flags &= ~RECEIVING;
 		p_dest->p_recvfrom = NO_TASK;
+
 		unblock(p_dest);
 
 		assert(p_dest->p_flags == 0);
@@ -266,10 +267,13 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m)
 		unblock(p_from);
 	}
 	else {
+
+		for (int i = 0; i < 100000; i++){}
 		p_who_wanna_recv->p_flags |= RECEIVING;
 		p_who_wanna_recv->p_msg = m;
 		p_who_wanna_recv->p_recvfrom = src;
 		block(p_who_wanna_recv);
+
 
 		assert(p_who_wanna_recv->p_flags == RECEIVING);
 		assert(p_who_wanna_recv->p_msg != 0);
