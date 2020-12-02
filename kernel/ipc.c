@@ -276,11 +276,7 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m)
 		assert(p_who_wanna_recv->p_flags != 0);
 		p_who_wanna_recv->p_msg = m;
 		p_who_wanna_recv->p_recvfrom = src;
-		assert(p_who_wanna_recv->p_flags != 0);
 		block(p_who_wanna_recv);
-		assert(p_who_wanna_recv->p_flags != 0);
-		//for (int i = 0; i < 10000000; i++)
-		//	for(int j = 0; j < 10000; j++) {}
 
 		assert(p_who_wanna_recv->p_flags == RECEIVING);
 		assert(p_who_wanna_recv->p_msg != 0);

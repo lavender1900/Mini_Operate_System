@@ -162,7 +162,7 @@ PUBLIC	int	search_file(char* path)
 	INODE* dir_inode;
 	if (strip_path(filename, path, &dir_inode) != 0)
 		return 0;
-	
+
 	int dir_blk0_nr = dir_inode->i_start_sector;
 	int nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE - 1) / SECTOR_SIZE;
 	int nr_dir_entries = dir_inode->i_size / DIR_ENTRY_SIZE;
@@ -173,8 +173,9 @@ PUBLIC	int	search_file(char* path)
 		RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
 		pde = (DIR_ENTRY*) fsbuf;
 		for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++, pde++) {
-			if (kmemcmp(filename, pde->name, MAX_FILENAME_LEN) == 0)
+			if (kmemcmp(filename, pde->name, MAX_FILENAME_LEN) == 0) {
 				return pde->inode_nr;
+			}
 			if (++m > nr_dir_entries)
 				break;
 		}

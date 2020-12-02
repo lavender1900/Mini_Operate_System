@@ -276,11 +276,11 @@ PRIVATE	void	mkfs()
 
 	WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sectors);
 
-
-	/******************** Write Inode Array to the disk *************************/
 	kmemset(fsbuf, 0, SECTOR_SIZE);
 	for (i = 1; i < sb.nr_smap_sectors; i++)
 		WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sectors + i);
+
+	/******************** Write Inode Array to the disk *************************/
 
 	kmemset(fsbuf, 0, SECTOR_SIZE);
 	INODE* pi = (INODE*) fsbuf;

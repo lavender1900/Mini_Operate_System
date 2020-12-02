@@ -74,6 +74,7 @@ PUBLIC	int	vsprintf(char* buf, const char* fmt, va_list args)
 
 		for (int i = 0; i < (align_times > _strlen(tmp) ? align_times - _strlen(tmp) : 0); i++)	
 			*p++ = align_char;
+		q = tmp;
 	}
 	*p = 0;
 
