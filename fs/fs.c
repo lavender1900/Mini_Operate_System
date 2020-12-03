@@ -29,7 +29,7 @@ PUBLIC	void	task_fs()
 	
 	while(1) {
 		send_recv(RECEIVE, ANY, &fs_msg);
-		int src = fs_msg.source;
+/*		int src = fs_msg.source;
 		pcaller = &proc_table[src];
 
 		switch (fs_msg.type) {
@@ -48,7 +48,7 @@ PUBLIC	void	task_fs()
 
 		fs_msg.type = SYSCALL_RET;
 		send_recv(SEND, src, &fs_msg);
-	}
+*/	}
 }
 
 PUBLIC	int	rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void* buf)
@@ -84,15 +84,15 @@ PRIVATE void	init_fs()
 	driver_msg.type = DEV_OPEN;
 	driver_msg.DEVICE = MINOR(ROOT_DEV);
 	assert(dev_drv_map[MAJOR(ROOT_DEV)].driver_handler != INVALID_DRIVER);
-	//send_recv(BOTH, dev_drv_map[MAJOR(ROOT_DEV)].driver_handler, &driver_msg);
+	send_recv(BOTH, dev_drv_map[MAJOR(ROOT_DEV)].driver_handler, &driver_msg);
 	
-/*	mkfs();
+	mkfs();
 	read_super_block(ROOT_DEV);
 
 	sb = get_super_block(ROOT_DEV);
 	assert(sb->magic == MAGIC_V1);
 
-	root_inode = get_inode(ROOT_DEV, ROOT_INODE);*/
+	root_inode = get_inode(ROOT_DEV, ROOT_INODE);
 }
 
 PRIVATE	int	do_open()

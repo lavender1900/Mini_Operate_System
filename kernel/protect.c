@@ -59,6 +59,7 @@ PUBLIC void cpu_reserved_exception_handler(int vec_no, int err_code, int eip, in
 	 disp_str(" ");
 
 	cursor_pos = console_table[0].current_start_addr * 2;
+	console_table[0].cursor = console_table[0].current_start_addr + 2*SCREEN_WIDTH;
 
 	disp_color_str("Exception: ---> ", text_color);
 	disp_color_str(err_msg[vec_no], text_color);
@@ -69,12 +70,19 @@ PUBLIC void cpu_reserved_exception_handler(int vec_no, int err_code, int eip, in
 	disp_int(cs);
 	disp_color_str("EIP:", text_color);
 	disp_int(eip);
-	disp_color_str("PROC:", text_color);
-	disp_int(proc2pid(p_current_process));
 
 	if (err_code != 0xFFFFFFFF) {
 		disp_color_str("Error code:", text_color);
 		disp_int(err_code);
+	}
+
+	disp_color_str("PROC:", text_color);
+	disp_int(proc2pid(p_current_process));
+
+	printf("\n");
+	for (int i = 0; i < NR_PROCS+NR_TASKS; i++) {
+		PROCESS* p = &proc_table[i];
+		printf("gs = %x, fs = %x, es = %x, ds = %x, ss = %x, esp = %x, priority = %d, ticks = %d, addr = %x\n", p->regs.gs, p->regs.fs, p->regs.es, p->regs.ds, p->regs.ss, p->regs.esp, p->priority, p->ticks, p);
 	}
 } 
 

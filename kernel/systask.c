@@ -12,8 +12,6 @@ PUBLIC	void	task_sys()
 	while (1) {
 		send_recv(RECEIVE, ANY, &msg);
 		int src = msg.source;
-		donothing();
-		printf("src = %d ", src);
 		switch (msg.type) {
 		case GET_TICKS:
 			msg.RETVAL = ticks;

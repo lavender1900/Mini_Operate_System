@@ -200,6 +200,7 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m)
 		return 0;
 	}
 
+
 	if (src == ANY) {
 		if (p_who_wanna_recv->q_sending) {
 			p_from = p_who_wanna_recv->q_sending;
@@ -270,8 +271,6 @@ PUBLIC	int	msg_receive(PROCESS* current, int src, MESSAGE* m)
 		unblock(p_from);
 	}
 	else {
-
-
 		p_who_wanna_recv->p_flags |= RECEIVING;
 		assert(p_who_wanna_recv->p_flags != 0);
 		p_who_wanna_recv->p_msg = m;

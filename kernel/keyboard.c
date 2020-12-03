@@ -258,6 +258,9 @@ PRIVATE	u8	get_byte_from_kbuf() {
 
 PRIVATE	void	keyboard_handler(int irq)
 {
+
+	//for (int i = 0; i < NR_PROCS+NR_TASKS; i++)
+	//	printf("proc %d priority = %d, ticks = %d\n", i, proc_table[i].priority, proc_table[i].ticks);
 	u8 scan_code = in_byte(0x60);
 
 	if (kb_in.count < KB_IN_BYTES)

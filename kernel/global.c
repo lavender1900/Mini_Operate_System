@@ -14,8 +14,9 @@
 
 PUBLIC	TASK	task_table[NR_TASKS+NR_PROCS] = {{TestA, STACK_SIZE, "Process A"}, {TestB, STACK_SIZE, "Process B"},
 					{TestC, STACK_SIZE, "Process C"}, {task_tty, STACK_SIZE, "TTY"}, 
-					{task_sys, STACK_SIZE, "syscall"}/*, {task_hd, STACK_SIZE, "hard disk"},
-					{task_fs, STACK_SIZE, "file system"}*/};
+					{task_sys, STACK_SIZE, "syscall"}, /*{task_hd, STACK_SIZE, "hard disk"},*/
+					{task_fs, STACK_SIZE, "file system"}};
+
 PUBLIC	TTY		tty_table[NR_CONSOLES];
 PUBLIC	CONSOLE		console_table[NR_CONSOLES];
 PUBLIC	TSS		shared_tss;

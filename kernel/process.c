@@ -20,9 +20,7 @@ PUBLIC	void	TestA()
 
 	int i = 0;
 	while(1) {
-		int t = get_ticks();
-		donothing();
-		printf("<Ticks: %5x>", t);
+//		printf("<Ticks: %5x>", get_ticks());
 		milli_delay(350);
 	}
 }
@@ -63,5 +61,15 @@ PUBLIC	void	TestC()
 	while(1) {
 		printf("C.");
 		milli_delay(500);
+	}
+}
+
+PUBLIC	void	TestD()
+{
+	MESSAGE msg;
+	while(1) {
+//		printf("D. %x",get_ticks());
+		send_recv(RECEIVE, ANY, &msg);
+		milli_delay(400);
 	}
 }

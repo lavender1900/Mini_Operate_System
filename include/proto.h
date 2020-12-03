@@ -8,6 +8,7 @@
 PUBLIC void	TestA();
 PUBLIC void	TestB();
 PUBLIC void	TestC();
+PUBLIC	void	TestD();
 
 PUBLIC	void	task_sys();
 PUBLIC	void	task_fs();
