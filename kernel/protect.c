@@ -4,6 +4,7 @@
 #include	"i386macros.h"
 #include	"8259A.h"
 #include	"io.h"
+#include	"process.h"
 
 void	hwint00();
 void	hwint01();
@@ -53,11 +54,11 @@ PUBLIC void cpu_reserved_exception_handler(int vec_no, int err_code, int eip, in
 	"#XF SIMD Floating Point Exception"
 	};
 
-	cursor_pos = 0;
+	cursor_pos = console_table[0].current_start_addr * 2;
 	for (int i = 0; i < 80 * 5; i++)
 	 disp_str(" ");
 
-	cursor_pos = 0;
+	cursor_pos = console_table[0].current_start_addr * 2;
 
 	disp_color_str("Exception: ---> ", text_color);
 	disp_color_str(err_msg[vec_no], text_color);
@@ -68,6 +69,8 @@ PUBLIC void cpu_reserved_exception_handler(int vec_no, int err_code, int eip, in
 	disp_int(cs);
 	disp_color_str("EIP:", text_color);
 	disp_int(eip);
+	disp_color_str("PROC:", text_color);
+	disp_int(proc2pid(p_current_process));
 
 	if (err_code != 0xFFFFFFFF) {
 		disp_color_str("Error code:", text_color);

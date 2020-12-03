@@ -25,7 +25,7 @@ PUBLIC	void	task_fs()
 {
 	printf("Task FS starts.\n");
 	
-	init_fs();
+//	init_fs();
 	
 	while(1) {
 		send_recv(RECEIVE, ANY, &fs_msg);
@@ -44,6 +44,7 @@ PUBLIC	void	task_fs()
 			fs_msg.CNT = do_rdwt();
 			break;
 		}
+
 
 		fs_msg.type = SYSCALL_RET;
 		send_recv(SEND, src, &fs_msg);
@@ -83,16 +84,15 @@ PRIVATE void	init_fs()
 	driver_msg.type = DEV_OPEN;
 	driver_msg.DEVICE = MINOR(ROOT_DEV);
 	assert(dev_drv_map[MAJOR(ROOT_DEV)].driver_handler != INVALID_DRIVER);
-	send_recv(BOTH, dev_drv_map[MAJOR(ROOT_DEV)].driver_handler, &driver_msg);
+	//send_recv(BOTH, dev_drv_map[MAJOR(ROOT_DEV)].driver_handler, &driver_msg);
 	
-	mkfs();
-
+/*	mkfs();
 	read_super_block(ROOT_DEV);
 
 	sb = get_super_block(ROOT_DEV);
 	assert(sb->magic == MAGIC_V1);
 
-	root_inode = get_inode(ROOT_DEV, ROOT_INODE);
+	root_inode = get_inode(ROOT_DEV, ROOT_INODE);*/
 }
 
 PRIVATE	int	do_open()
@@ -283,9 +283,9 @@ PRIVATE	INODE*	create_file(char* path, int flags)
 	char filename[MAX_PATH];
 	INODE* dir_inode;
 
+
 	if (strip_path(filename, path, &dir_inode) != 0)
 		return 0;
-	
 	int inode_nr = alloc_imap_bit(dir_inode->i_dev);
 	int free_sect_nr = alloc_smap_bit(dir_inode->i_dev, NR_DEFAULT_FILE_SECTS);
 

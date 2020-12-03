@@ -172,9 +172,7 @@ PUBLIC	int	search_file(char* path)
 	int m = 0;
 	DIR_ENTRY* pde;
 	for (i = 0; i < nr_dir_blks && m <= nr_dir_entries; i++) {
-		donothing();
 		RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
-		donothing();
 		pde = (DIR_ENTRY*) fsbuf;
 		for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++, pde++) {
 			if (kmemcmp(filename, pde->name, MAX_FILENAME_LEN) == 0) {

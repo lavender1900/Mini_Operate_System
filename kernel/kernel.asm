@@ -159,7 +159,6 @@ popad
 add	esp, 4
 
 dec	dword [k_reenter]
-
 iretd
 
 ;************ Intel Used Interrupts *****************

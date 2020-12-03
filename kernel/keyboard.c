@@ -258,53 +258,6 @@ PRIVATE	u8	get_byte_from_kbuf() {
 
 PRIVATE	void	keyboard_handler(int irq)
 {
-	for (int i = 0; i < NR_PROCS + NR_TASKS; i++) {
-		PROCESS* p = &proc_table[i];
-		while (p->p_sendto != NO_TASK) {
-			p = &proc_table[p->p_sendto];
-			if (proc2pid(p) == i) {
-				p = &proc_table[i];
-				printf("Has circle: %d -> ", i);
-				while (p->p_sendto != NO_TASK) {
-					p = &proc_table[p->p_sendto];
-					printf("%d -> ", proc2pid(p));
-					if (proc2pid(p) == i)
-						break;
-				}
-				break;
-			}
-		}
-
-		p = &proc_table[i];
-		while (p->p_flags & SENDING) {
-			p = &proc_table[p->p_sendto];
-			if (p->p_flags & RECEIVING) {
-				p = &proc_table[i];
-				printf("Has conflict: %d -> ", i);
-				while (p->p_flags & SENDING) {
-					p = &proc_table[p->p_sendto];
-					if (p->p_flags & SENDING) {
-						printf("%d -> ", proc2pid(p));
-					} else if (p->p_flags & RECEIVING) {
-						printf("%d !<- ", proc2pid(p));
-						break;
-					}
-				}
-				break;
-				printf("\n");
-			}
-		}
-	}
-
-	for (int i = 0; i < NR_PROCS + NR_TASKS; i++) {
-		printf("%d flags = %d ", i, proc_table[i].p_flags);
-		if (proc_table[i].p_sendto != NO_TASK)
-			printf("sendto -> %d ", proc_table[i].p_sendto);
-		if (proc_table[i].p_recvfrom != NO_TASK)
-			printf("recvfrom <- %d ", proc_table[i].p_recvfrom);
-		printf("\n");
-	}
-
 	u8 scan_code = in_byte(0x60);
 
 	if (kb_in.count < KB_IN_BYTES)

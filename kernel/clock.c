@@ -59,9 +59,5 @@ PUBLIC	void	schedule()
 					p->ticks = p->priority;
 			}
 		}
-
-		//if (greatest_ticks && proc2pid(p) == 4) {
-		//	printf("Schedule SYS");
-		//}
 	}
 }

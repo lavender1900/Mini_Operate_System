@@ -91,8 +91,15 @@ typedef	struct	s_proc
 	u16	ldt_selector;
 	DESCRIPTOR	ldts[LDT_SIZE];
 
-	int	ticks;
+	int	a;
+	int	b;
+	int	c;
 	int	priority;
+	int	d;
+	int	e;
+	int	f;
+	int	g;
+	int	ticks;
 	u32	pid;
 	u32	nr_tty;
 	int	proc_type;

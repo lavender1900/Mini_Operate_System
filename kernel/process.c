@@ -20,7 +20,9 @@ PUBLIC	void	TestA()
 
 	int i = 0;
 	while(1) {
-		printf("<Ticks: %5x>", get_ticks());
+		int t = get_ticks();
+		donothing();
+		printf("<Ticks: %5x>", t);
 		milli_delay(350);
 	}
 }
@@ -51,7 +53,7 @@ PUBLIC	void	TestB()
 	close(fd);
 */
 	while(1) {
-		printf("I'm B");
+//		printf("I'm B");
 //		milli_delay(400);
 	}
 }
