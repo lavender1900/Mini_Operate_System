@@ -22,8 +22,6 @@
 #define	O_WRITE			4
 #define	O_RDWR			(O_READ | O_WRITE)
 
-#define	ROOT_INODE		1
-
 #define	NR_DEFAULT_FILE_SECTS	2048	// 2048 * 512 = 1MB
 
 #define	RD_SECT(dev, sect_nr) rw_sector(DEV_READ, dev, (sect_nr) * SECTOR_SIZE, SECTOR_SIZE, TASK_FS, fsbuf)

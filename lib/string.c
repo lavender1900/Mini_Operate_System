@@ -8,6 +8,17 @@ PUBLIC	void	_strcpy(char* ptr, char* src)
 	*ptr = '\0';
 }
 
+PUBLIC	int	_strcmp(char* src, char* dest)
+{
+	while (*src == *dest) {
+		if (*src == 0)
+			return 0;
+		src++, dest++;
+	}
+
+	return 1;
+}	
+
 PUBLIC	int	_strlen(char* p)
 {
 	int i = 0;

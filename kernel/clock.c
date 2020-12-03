@@ -51,7 +51,6 @@ PUBLIC	void	schedule()
 			}
 		}
 
-
 		if (!greatest_ticks)
 		{
 			for (p = proc_table; p < proc_table + NR_PROCS + NR_TASKS; p++)
@@ -60,5 +59,9 @@ PUBLIC	void	schedule()
 					p->ticks = p->priority;
 			}
 		}
+
+		//if (greatest_ticks && proc2pid(p) == 4) {
+		//	printf("Schedule SYS");
+		//}
 	}
 }

@@ -4,6 +4,7 @@
 #include	"const.h"
 
 PUBLIC	void	_strcpy(char* dest, char* src);
+PUBLIC	int	_strcmp(char* src, char* dest);
 PUBLIC	int	_strlen(char* p);
 PUBLIC char*	itoa(char* str, int num);
 

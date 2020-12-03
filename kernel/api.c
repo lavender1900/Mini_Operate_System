@@ -36,3 +36,38 @@ PUBLIC	int	open(const char* pathname, int flags)
 
 	return msg.FD;
 }
+
+PUBLIC	void	close(int fd)
+{
+	MESSAGE msg;
+	msg.type = CLOSE;
+	msg.FD = fd;
+
+	send_recv(BOTH, TASK_FS, &msg);
+}
+
+PUBLIC	int	file_read(int fd, void* buf, int count)
+{
+	MESSAGE	msg;
+	msg.type = READ;
+	msg.FD = fd;
+	msg.BUF = buf;
+	msg.CNT = count;
+
+	send_recv(BOTH, TASK_FS, &msg);
+	
+	return msg.CNT;
+}
+
+PUBLIC	int	file_write(int fd, void* buf, int count)
+{
+	MESSAGE	msg;
+	msg.type = WRITE;
+	msg.FD = fd;
+	msg.BUF = buf;
+	msg.CNT = count;
+
+	send_recv(BOTH, TASK_FS, &msg);
+
+	return msg.CNT;
+}
