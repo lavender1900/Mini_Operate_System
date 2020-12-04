@@ -7,5 +7,6 @@ PUBLIC	int	open(const char* pathname, int flags);
 PUBLIC	void	close(int fd);
 PUBLIC	int	file_read(int fd, void* buf, int count);
 PUBLIC	int	file_write(int fd, void* buf, int count);
+PUBLIC	int	unlink(const char* pathname);
 
 #endif

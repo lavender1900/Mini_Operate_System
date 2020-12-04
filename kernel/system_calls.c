@@ -60,8 +60,6 @@ PUBLIC	int	sys_sendrec(int function, int src_dest, PROCESS* p,  MESSAGE* msg)
 
 	assert(mla->source != src_dest); // cannot send to or receive from self
 
-	//if (proc2pid(p) == TASK_SYS && proc_table[0].p_flags == SENDING)
-	//	donothing();
 	if (function == SEND) {
 		ret = msg_send(p, src_dest, msg);
 		if (ret != 0)

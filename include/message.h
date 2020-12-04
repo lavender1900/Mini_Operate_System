@@ -13,6 +13,7 @@
 #define	CLOSE		8
 #define	READ		9
 #define	WRITE		10
+#define	UNLINK		11
 
 // message request type
 #define	DIOCTL_GET_GEO		0

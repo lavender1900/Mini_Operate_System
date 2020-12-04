@@ -1,8 +1,14 @@
 #include	"type.h"
+#include	"const.h"
 #include	"fs.h"
 #include	"asm_lib.h"
 #include	"page.h"
 #include	"string.h"
+#include	"global.h"
+#include	"message.h"
+#include	"io.h"
+#include	"hd.h"
+#include	"ipc.h"
 
 extern	MESSAGE	fs_msg;
 
@@ -10,7 +16,7 @@ PUBLIC	int	do_unlink()
 {
 	char pathname[MAX_PATH];
 
-	int name_len = fs_msg.NAME_LEN
+	int name_len = fs_msg.NAME_LEN;
 	int src = fs_msg.source;
 	assert(name_len < MAX_PATH);
 	kmemcpy((void*)vir2linear(ldt_proc_id2base(src), fs_msg.PATHNAME),
@@ -19,12 +25,12 @@ PUBLIC	int	do_unlink()
 
 	pathname[name_len] = 0;
 
-	if (_strcmp(pathname, "/") == 0) }
-		printf("FS: do_unlink(): cannot unlink root\n")
+	if (_strcmp(pathname, "/") == 0) {
+		printf("FS: do_unlink(): cannot unlink root\n");
 		return -1;
 	}
 
-	int inodes_nr = search_file(pathname);
+	int inode_nr = search_file(pathname);
 	if (inode_nr == INVALID_INODE) {
 		printf("FS: do_unlink(): search_file() returns invalid inode: %s\n", pathname);
 		return -1;
@@ -78,14 +84,14 @@ PUBLIC	int	do_unlink()
 	// handle second to last to second bytes
 	int k;
 	i = (byte_idx % SECTOR_SIZE) + 1;
-	for (k = 0; i < byte_cnt; k++,i++,bits_left -= 8) {
+	for (k = 0; k < byte_cnt; k++,i++,bits_left -= 8) {
 		if (i == SECTOR_SIZE) {
 			i = 0;
 			WR_SECT(pin->i_dev, s);
 			RD_SECT(pin->i_dev, ++s);
 		}
 		assert(fsbuf[i] == 0xFF);
-		fsbuf[i] == 0;
+		fsbuf[i] = 0;
 	}
 
 	if (i == SECTOR_SIZE) {

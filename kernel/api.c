@@ -71,3 +71,16 @@ PUBLIC	int	file_write(int fd, void* buf, int count)
 
 	return msg.CNT;
 }
+
+PUBLIC	int	unlink(const char* pathname)
+{
+	MESSAGE	msg;
+	msg.type = UNLINK;
+
+	msg.PATHNAME = (void*) pathname;
+	msg.NAME_LEN = _strlen(pathname);
+
+	send_recv(BOTH, TASK_FS, &msg);
+
+	return msg.RETVAL;
+}

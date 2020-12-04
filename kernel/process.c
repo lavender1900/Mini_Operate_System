@@ -10,9 +10,26 @@
 
 PUBLIC	void	TestA()
 {
+	char* filename[] = {"/foo", "/bar", "/baz"};
+	int fd;
+	for (int j = 0; j < 3; j++) {
+		fd = open(filename[j], O_CREAT | O_RDWR);
+		assert(fd != -1);
+		printf("File created %s (fd %d)\n", filename[j], fd);
+		close(fd);
+	}
+
+	char* rmfiles[] = {"/foo", "bar", "/baz", "/dev_tty0"};
+	for (int j = 0; j < 4; j++) {
+		if (unlink(rmfiles[j]) == 0)
+			printf("File removed: %s\n", rmfiles[j]);
+		else
+			printf("Failed to remove file %s\n", rmfiles[j]);
+	}
+
 	int i = 0;
 	while(1) {
-		printf("<Ticks: %5x>", get_ticks());
+//		printf("<Ticks: %5x>", get_ticks());
 		milli_delay(350);
 	}
 }
