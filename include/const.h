@@ -9,7 +9,7 @@
 #define	LDT_SIZE	3
 
 #define	NR_PROCS	3
-#define	NR_TASKS	3
+#define	NR_TASKS	4
 #define	NR_IRQS		16
 #define	NR_CONSOLES	3
 #define	NR_SYS_CALL	5

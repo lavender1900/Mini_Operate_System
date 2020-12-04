@@ -7,6 +7,7 @@
 #include	"global.h"
 #include	"page.h"
 #include	"clock.h"
+#include	"process.h"
 
 PUBLIC	int	panic(char* fmt, ...)
 {
@@ -19,8 +20,8 @@ PUBLIC	int	panic(char* fmt, ...)
 
 PUBLIC	void	assertion_failure(char* exp, char* file, char* base_file, int line)
 {
-	panic("assert(%s) failed: file: %s, base_file: %s, line %d",
-		exp, file, base_file, line);
+	panic("assert(%s) failed: file: %s, base_file: %s, line %d, proc %d",
+		exp, file, base_file, line, proc2pid(p_current_process));
 
 	while(1) {}
 

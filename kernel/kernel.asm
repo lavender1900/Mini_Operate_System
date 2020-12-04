@@ -224,7 +224,6 @@ push	12
 jmp	exception
 
 general_protection:
-xchg	bx, bx
 push	13
 jmp	exception
 

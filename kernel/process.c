@@ -8,21 +8,11 @@
 #include	"message.h"
 #include	"fs.h"
 
-PUBLIC	MESSAGE msg;
 PUBLIC	void	TestA()
 {
-printf("Proc A msg addr = %x ", &msg);
-	
-/*	msg.source = 0;
-	msg.type = OPEN;
-	msg.FLAGS = O_CREAT;
-	msg.PATHNAME = "/blabla";
-	msg.NAME_LEN = 7;
-//	send_recv(RECEIVE, ANY, &msg);
-*/
 	int i = 0;
 	while(1) {
-//		printf("<Ticks: %5x>", get_ticks());
+		printf("<Ticks: %5x>", get_ticks());
 		milli_delay(350);
 	}
 }
@@ -31,7 +21,7 @@ PUBLIC	void	TestB()
 {
 	printf("B starting");
 	int i = 1;
-/*	int fd;
+	int fd;
 	int n;
 	const char filename[] = "blah";
 	const char bufw[] = "abcdefsdfsdf";
@@ -51,10 +41,10 @@ PUBLIC	void	TestB()
 	printf("Read file: %s", bufr);
 
 	close(fd);
-*/
+
 	while(1) {
-//		printf("I'm B");
-//		milli_delay(400);
+		printf("I'm B");
+		milli_delay(400);
 	}
 }
 
@@ -63,15 +53,5 @@ PUBLIC	void	TestC()
 	while(1) {
 		printf("C.");
 		milli_delay(500);
-	}
-}
-
-PUBLIC	void	TestD()
-{
-	MESSAGE msg;
-	while(1) {
-//		printf("D. %x",get_ticks());
-		send_recv(RECEIVE, ANY, &msg);
-		milli_delay(400);
 	}
 }

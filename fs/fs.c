@@ -24,15 +24,13 @@ PRIVATE	PROCESS* pcaller;
 PUBLIC	void	task_fs()
 {
 	
-	MESSAGE	msg;
 	printf("Task FS starts.\n");
-	printf("fs_msg addr : %x", &fs_msg);
 	
-//	init_fs();
+	init_fs();
 	
 	while(1) {
-		send_recv(RECEIVE, ANY, &msg);
-/*		int src = fs_msg.source;
+		send_recv(RECEIVE, ANY, &fs_msg);
+		int src = fs_msg.source;
 		pcaller = &proc_table[src];
 
 		switch (fs_msg.type) {
@@ -51,7 +49,7 @@ PUBLIC	void	task_fs()
 
 		fs_msg.type = SYSCALL_RET;
 		send_recv(SEND, src, &fs_msg);
-*/	}
+	}
 }
 
 PUBLIC	int	rw_sector(int io_type, int dev, u64 pos, int bytes, int proc_nr, void* buf)
