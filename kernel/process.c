@@ -8,16 +8,18 @@
 #include	"message.h"
 #include	"fs.h"
 
+PUBLIC	MESSAGE msg;
 PUBLIC	void	TestA()
 {
-	MESSAGE msg;
-	msg.source = 0;
+printf("Proc A msg addr = %x ", &msg);
+	
+/*	msg.source = 0;
 	msg.type = OPEN;
 	msg.FLAGS = O_CREAT;
 	msg.PATHNAME = "/blabla";
 	msg.NAME_LEN = 7;
-//	send_recv(BOTH, TASK_FS, &msg);
-
+//	send_recv(RECEIVE, ANY, &msg);
+*/
 	int i = 0;
 	while(1) {
 //		printf("<Ticks: %5x>", get_ticks());

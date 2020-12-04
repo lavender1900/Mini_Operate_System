@@ -78,6 +78,9 @@ PUBLIC void cpu_reserved_exception_handler(int vec_no, int err_code, int eip, in
 
 	disp_color_str("PROC:", text_color);
 	disp_int(proc2pid(p_current_process));
+	
+	disp_color_str("K_REENTER:", text_color);
+	disp_int(k_reenter);
 
 	printf("\n");
 	for (int i = 0; i < NR_PROCS+NR_TASKS; i++) {

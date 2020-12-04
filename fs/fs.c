@@ -23,12 +23,15 @@ PRIVATE	PROCESS* pcaller;
 
 PUBLIC	void	task_fs()
 {
+	
+	MESSAGE	msg;
 	printf("Task FS starts.\n");
+	printf("fs_msg addr : %x", &fs_msg);
 	
 //	init_fs();
 	
 	while(1) {
-		send_recv(RECEIVE, ANY, &fs_msg);
+		send_recv(RECEIVE, ANY, &msg);
 /*		int src = fs_msg.source;
 		pcaller = &proc_table[src];
 
